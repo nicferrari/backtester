@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 use crate::{datas, Result};
-use chrono::{DateTime, FixedOffset, TimeZone};
+use chrono::{DateTime, FixedOffset};
 use datas::Data;
 
 pub fn plot(quotes:&Data)->Result<()>{
