@@ -1,7 +1,6 @@
 use backtester::backtester::Backtest;
 use backtester::datas::Data;
-use backtester::reports::print_report;
-use backtester::strategies::{buy_n_hold, do_nothing, short_n_hold};
+use backtester::strategies::{buy_n_hold, do_nothing, short_n_hold, sma_cross};
 use backtester::Result;
 
 fn main()->Result<()>{
@@ -22,6 +21,12 @@ fn main()->Result<()>{
     let revert_bnh_strategy = bnh_strategy.revert();
     let mut revert_bnh_tester = Backtest::new(quotes.clone(),revert_bnh_strategy.clone(),100000f64)?;
     revert_bnh_tester.calculate();
-    revert_bnh_tester.print_report();
+    revert_bnh_tester.print_report_arg2(&["date","open","close","position","account"]);
+
+    let sma_cross_strategy = sma_cross(quotes.clone(),5);
+    let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64)?;
+    sma_cross_tester.calculate();   //da togliere perchè superfluo va chiamata all'inizializzazione in automatico
+    sma_cross_tester.print_report_arg2(&["date","open","close","position","account"]);
+
     Ok(())
 }

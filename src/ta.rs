@@ -1,6 +1,4 @@
 use crate::datas::Data;
-//use crate::Result;
-use std::io;
 use csv::Writer;
 use std::error::Error;
 
@@ -17,10 +15,13 @@ impl Indicator{
         wrt.flush()?;
         Ok(())
     }
+    pub fn quotes(&self)->Data{
+        return self.quotes.clone();
+    }
 }
 
 pub fn sma(quotes:&Data, period:usize)->Vec<f64>{
-    let mut indicator:Vec<f64> = vec![0.;period-1];
+    let mut indicator:Vec<f64> = vec![-1.;period-1];
     let length = quotes.timestamps().len();
     for i in period..length+1{
         let slice = &quotes.close()[i-period..i];

@@ -1,4 +1,4 @@
-use yahoo_finance_api::Quote;
+use std::collections::HashMap;
 use crate::strategies::Strategy;
 use crate::{orders, Result};
 use crate::datas::Data;
@@ -38,6 +38,42 @@ impl Backtest{
             self.account[i]+self.position[i]*self.quotes.close()[i]);
         }
     }
+    pub fn print_report_arg(&self, list:&[&str])
+    {
+        //+ semplice forse fare iter su list e match {open => Data::close(),...}
+        let functions : Vec<fn(&Data)->Vec<f64>>=vec![Data::close];
+        for i in 1..self.quotes.timestamps().len(){
+            println!("{} = {:.2}",&list[0],functions[(0 as usize)](&self.quotes)[i]);
+        }
+    }
+
+    pub fn position(&self)->Vec<f64>{
+        return self.position.clone();
+    }
+    pub fn account(&self)->Vec<f64>{return self.account.clone();}
+    pub fn print_report_arg2(&self, list:&[&str]){
+        let mut data_functions: HashMap<&str, fn(&Data)->Vec<f64>>=HashMap::new();
+        data_functions.insert("close", Data::close);
+        data_functions.insert("open", Data::open);
+        let mut backtest_functions: HashMap<&str, fn(&Backtest)->Vec<f64>>=HashMap::new();
+        backtest_functions.insert("position",Backtest::position);
+        backtest_functions.insert("account",Backtest::account);
+        for i in 1..self.quotes.timestamps().len(){
+            print!("Date = {:} - ",&self.quotes.timestamps()[i].format("%Y-%m-%d"));
+            for j in list{
+                if let Some(func) = data_functions.get(j){
+                    let value = func(&self.quotes)[i];
+                    print!("{} = {:.2}  ",j,value)
+                };
+                if let Some(func) = backtest_functions.get(j){
+                    let value = func(&self)[i];
+                    print!("{} = {:.2}  ",j,value)
+                };
+            }
+            print!("   - net worth = {:.2}",self.quotes.close()[i]*self.position()[i]+self.account()[i]);
+            println!();
+        }
+    }
     pub fn calculate(&mut self){
         let mut stance = Stance::NULL;
         let mut previous_position = 0.;
@@ -49,7 +85,7 @@ impl Backtest{
                         let networth = previous_account + previous_position * self.quotes.close()[i];//to be changed to open
                         //self.position[i] = ((self.account[i]/self.quotes.close()[i]) as i64) as f64;
                         self.position[i] = ((networth/self.quotes.close()[i]) as i64) as f64;
-                        self.account[i] = self.account[i]-self.position[i]*self.quotes.close()[i];
+                        self.account[i] = networth-self.position[i]*self.quotes.close()[i];
                         stance = Stance::LONG;
                     } else {
                         self.position[i] = previous_position;
@@ -61,7 +97,7 @@ impl Backtest{
                         let networth = previous_account + previous_position * self.quotes.close()[i];//to be changed to open
                         //self.position[i] = -((self.account[i]/self.quotes.close()[i]) as i64) as f64;
                         self.position[i] = -((networth/self.quotes.close()[i]) as i64) as f64;
-                        self.account[i] = self.account[i]-self.position[i]*self.quotes.close()[i];
+                        self.account[i] = networth-self.position[i]*self.quotes.close()[i];
                         stance = Stance::SHORT;
                     } else {
                         self.position[i] = previous_position;

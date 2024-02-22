@@ -1,8 +1,9 @@
-use yahoo_finance_api::Quote;
+use csv::Writer;
 use crate::datas::Data;
 use crate::orders::Order;
 use crate::orders::Order::{BUY,SHORTSELL,NULL};
-use crate::Result;
+use std::error::Error;
+use crate::ta::{Indicator,sma};
 
 #[derive(Clone)]
 pub struct Strategy{
@@ -12,15 +13,6 @@ pub struct Strategy{
 }
 
 impl Strategy{
-    // below not really needed anymore but useful example of passing func as parameter
-    fn apply(quotes:Data, func:&dyn Fn(Data)->Vec<Order>)->Result<Self>{
-        let length = quotes.timestamps().len();
-        Ok(Strategy{
-            //name:"Buy_and_Hold".to_string(),
-            name:stringify!(func),
-            choices:func(quotes),
-        })
-    }
     pub fn choices(&self)->Vec<Order>{
         return self.choices.clone();
     }
@@ -35,6 +27,12 @@ impl Strategy{
             name:"revert",
             choices:rev_choices,
         }
+    }
+    pub fn to_csv(&self)->Result<(),Box<dyn Error>>{
+        let mut wrt = Writer::from_path("strategies.csv")?;
+        wrt.write_record(self.choices().iter().map(|e|e.to_string()))?;
+        wrt.flush()?;
+        Ok(())
     }
 }
 
@@ -66,6 +64,25 @@ pub fn do_nothing(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![NULL;length];
     let name = "do nothing";
+    Strategy{
+        name:name,
+        choices:choices,
+    }
+}
+pub fn sma_cross(quotes:Data, period:usize)->Strategy{
+    let sma = sma(&quotes,period);
+    let indicator = Indicator{indicator:sma,quotes:quotes};
+    let length = indicator.quotes.timestamps().len();
+    let mut choices = vec![NULL;length];
+    for i in 1..length{
+        if indicator.indicator[i]!=-1.{
+            if indicator.indicator[i]>=indicator.quotes.open()[i]{
+                choices[i] = BUY;
+            }else if indicator.indicator[i]<indicator.quotes.open()[i]{
+               choices[i] = SHORTSELL}
+        }
+    }
+    let name = "sma cross";
     Strategy{
         name:name,
         choices:choices,
