@@ -1,5 +1,5 @@
 use backtester::datas::{Data};
-use backtester::charts::{plot};
+use backtester::charts::{plot,plot_nw};
 use backtester::Result;
 use backtester::reports::print_report;
 use backtester::strategies::{buy_and_hold, Strategy, buy_n_hold};

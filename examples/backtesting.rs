@@ -1,4 +1,5 @@
 use backtester::backtester::Backtest;
+use backtester::charts::plot_nw;
 use backtester::datas::Data;
 use backtester::strategies::{buy_n_hold, do_nothing, short_n_hold, sma_cross};
 use backtester::Result;
@@ -27,6 +28,7 @@ fn main()->Result<()>{
     let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64)?;
     sma_cross_tester.calculate();   //da togliere perchè superfluo va chiamata all'inizializzazione in automatico
     sma_cross_tester.print_report_arg2(&["date","open","close","position","account"]);
+    _ = plot_nw(&quotes,&sma_cross_tester.position(),&sma_cross_tester.account());
 
     Ok(())
 }
