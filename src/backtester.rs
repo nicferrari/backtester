@@ -43,7 +43,7 @@ impl Backtest{
         //+ semplice forse fare iter su list e match {open => Data::close(),...}
         let functions : Vec<fn(&Data)->Vec<f64>>=vec![Data::close];
         for i in 1..self.quotes.timestamps().len(){
-            println!("{} = {:.2}",&list[0],functions[(0 as usize)](&self.quotes)[i]);
+            println!("{} = {:.2}",&list[0],functions[0 as usize](&self.quotes)[i]);
         }
     }
 

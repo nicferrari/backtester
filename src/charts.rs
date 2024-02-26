@@ -1,9 +1,10 @@
 use plotters::prelude::*;
-use crate::{datas, Result};
+use crate::{datas};
 use chrono::{DateTime, FixedOffset};
 use datas::Data;
+use crate::orders::Order;
 
-pub fn plot(quotes:&Data)->Result<()>{
+pub fn plot(quotes:&Data)->Result<(), Box<dyn std::error::Error>>{
 
     let yahoo_datetimes:Vec<DateTime<FixedOffset>> = quotes.timestamps();
     let opens:Vec<f64> = quotes.open();
@@ -38,7 +39,7 @@ pub fn plot(quotes:&Data)->Result<()>{
     Ok(())
 }
 
-pub fn plot_nw(quotes:&Data, position:&Vec<f64>, account:&Vec<f64>)->Result<()>{
+pub fn plot_nw(quotes:&Data, position:&Vec<f64>, account:&Vec<f64>, orders:&Vec<Order>)->Result<(), Box<dyn std::error::Error>>{
     let yahoo_datetimes:Vec<DateTime<FixedOffset>> = quotes.timestamps();
     let opens:Vec<f64> = quotes.open();
     let closes:Vec<f64> = quotes.close();
@@ -65,7 +66,7 @@ pub fn plot_nw(quotes:&Data, position:&Vec<f64>, account:&Vec<f64>)->Result<()>{
     let _ = chart.draw_series(LineSeries::new((0..closes.len()).map(|i|(yahoo_datetimes[i], closes[i])),&GREEN)).unwrap().label("close");
 
 
-    struct CustomRow {
+    struct CustomRow {//not need to have a dedicated struct?
         date: DateTime<FixedOffset>,
         value1: f64,
         value2: f64,
@@ -76,6 +77,21 @@ pub fn plot_nw(quotes:&Data, position:&Vec<f64>, account:&Vec<f64>)->Result<()>{
         x.iter().map(|x| {
             CandleStick::new(x.date,x.value1, x.value1, x.value2, x.value2, GREEN.filled(), RED, 15)
         }),);
+
+    //add marker and label
+    for ((x, y),z) in yahoo_datetimes.iter().zip(closes.iter()).zip(orders.iter()) {
+        chart.draw_series(PointSeries::of_element(
+            vec![(*x, *y)],
+            5, // Circle marker size
+            &RED, // Red color
+            &|c, s, st| {
+                // Customize the circle marker appearance if needed
+                return EmptyElement::at(c) + Circle::new((0, 10), s, st.filled()) +
+                    Text::new(format!("{:?}", z), (0, 15), ("sans-serif", 15)) +
+                    TriangleMarker::new((-4, -4), 4, RED);
+            },
+        ))?;
+    }
 
     chart.configure_series_labels()
         .border_style(&BLACK)

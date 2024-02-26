@@ -1,7 +1,6 @@
 use backtester::Result;
 use backtester::backtester::Backtest;
 use backtester::datas::Data;
-use backtester::reports::print_report;
 use backtester::strategies::buy_n_hold;
 
 #[test]

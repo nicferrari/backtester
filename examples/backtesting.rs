@@ -28,7 +28,7 @@ fn main()->Result<()>{
     let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64)?;
     sma_cross_tester.calculate();   //da togliere perchè superfluo va chiamata all'inizializzazione in automatico
     sma_cross_tester.print_report_arg2(&["date","open","close","position","account"]);
-    _ = plot_nw(&quotes,&sma_cross_tester.position(),&sma_cross_tester.account());
+    _ = plot_nw(&quotes,&sma_cross_tester.position(),&sma_cross_tester.account(),&sma_cross_strategy.choices());
 
     Ok(())
 }
