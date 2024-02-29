@@ -10,6 +10,7 @@ pub struct Strategy{
     //name:String,
     name:&'static str,
     choices:Vec<Order>,
+    indicator:Vec<f64>,
 }
 
 impl Strategy{
@@ -17,15 +18,18 @@ impl Strategy{
         return self.choices.clone();
     }
     pub fn name(&self)->&'static str{ return self.name;}
-    pub fn revert(&self)->Self{
+    pub fn indicator(&self)->Vec<f64>{ return self.indicator.clone();}
+    pub fn invert(&self) ->Self{
         let length = self.choices.len();
-        let mut rev_choices = self.choices.clone();
+        let mut inv_choices = self.choices.clone();
         for i in 0..length{
-            if self.choices[i]==BUY {rev_choices[i]=SHORTSELL} else if self.choices[i]==SHORTSELL {rev_choices[i]=BUY}
+            if self.choices[i]==BUY { inv_choices[i]=SHORTSELL} else if self.choices[i]==SHORTSELL { inv_choices[i]=BUY}
         }
+        let indicator = self.indicator.clone();
         Strategy{
-            name:"revert",
-            choices:rev_choices,
+            name:"invert",
+            choices: inv_choices,
+            indicator,
         }
     }
     pub fn to_csv(&self)->Result<(),Box<dyn Error>>{
@@ -36,7 +40,7 @@ impl Strategy{
     }
 }
 
-/// specific strategies should only implement function to define choices: but why not returning directly Strategy?
+// specific strategies should only implement function to define choices: but why not returning directly Strategy?
 pub fn buy_and_hold(quotes:Data) ->Vec<Order>{
     let length = quotes.timestamps().len();
     return vec![BUY;length];
@@ -46,27 +50,33 @@ pub fn buy_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![BUY;length];
     let name = "buy and hold";
+    let indicator = vec![-1.;length];
     Strategy{
         name:name,
         choices:choices,
+        indicator,
     }
 }
 pub fn short_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![SHORTSELL;length];
     let name = "short and hold";
+    let indicator = vec![-1.;length];
     Strategy{
         name:name,
         choices:choices,
+        indicator,
     }
 }
 pub fn do_nothing(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![NULL;length];
     let name = "do nothing";
+    let indicator = vec![-1.;length];
     Strategy{
         name:name,
         choices:choices,
+        indicator,
     }
 }
 pub fn sma_cross(quotes:Data, period:usize)->Strategy{
@@ -83,8 +93,10 @@ pub fn sma_cross(quotes:Data, period:usize)->Strategy{
         }
     }
     let name = "sma cross";
+    let indicator = indicator.indicator();
     Strategy{
         name:name,
         choices:choices,
+        indicator,
     }
 }

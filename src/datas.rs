@@ -10,11 +10,14 @@ pub fn download_data(ticker:&str, interval:&str, range:&str)->Result<Vec<Quote>>
     let quotes = response.quotes().unwrap();
     return Ok(quotes);
 }
+///struct to contain all market data (ticker + OHLC)
 #[derive(Clone)]
 pub struct Data{
     ticker:String,
     datetime:Vec<DateTime<FixedOffset>>,
     open:Vec<f64>,
+    high:Vec<f64>,
+    low:Vec<f64>,
     close:Vec<f64>,
 }
 
@@ -24,11 +27,15 @@ impl Data{
         let timestamps:Vec<u64> = quotes.iter().map(|s|s.timestamp).collect();
         let yahoo_datetimes: Vec<DateTime<FixedOffset>> = timestamps.iter().map(|&ts|{FixedOffset::east_opt(0).unwrap().timestamp_opt(ts as i64,0).unwrap()}).collect();
         let opens:Vec<f64> = quotes.iter().map(|s|s.open).collect();
+        let highs:Vec<f64> = quotes.iter().map(|s|s.high).collect();
+        let lows:Vec<f64> = quotes.iter().map(|s|s.low).collect();
         let closes:Vec<f64> = quotes.iter().map(|s|s.close).collect();
         Ok(Data{
             ticker:ticker,
             datetime:yahoo_datetimes,
             open:opens,
+            high:highs,
+            low:lows,
             close:closes,
         })
     }
@@ -41,6 +48,8 @@ impl Data{
     pub fn open(&self)->Vec<f64>{
         return self.open.clone();
     }
+    pub fn high(&self)->Vec<f64>{return self.high.clone();}
+    pub fn low(&self)->Vec<f64>{return self.low.clone();}
     pub fn close(&self)->Vec<f64>{
         return self.close.clone();
     }

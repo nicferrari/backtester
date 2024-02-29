@@ -2,6 +2,8 @@ use crate::datas::Data;
 use csv::Writer;
 use std::error::Error;
 
+///container for checking calculation of indicator vs mktdata
+#[derive(Clone)]
 pub struct Indicator{
     pub indicator:Vec<f64>,
     pub quotes:Data,
@@ -17,6 +19,9 @@ impl Indicator{
     }
     pub fn quotes(&self)->Data{
         return self.quotes.clone();
+    }
+    pub fn indicator(&self)->Vec<f64>{
+        return self.indicator.clone();
     }
 }
 

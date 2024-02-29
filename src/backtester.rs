@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use crate::strategies::Strategy;
 use crate::{orders, Result};
 use crate::datas::Data;
+use crate::orders::Order;
 
 pub struct Backtest{
     quotes:Data,
@@ -29,29 +30,13 @@ impl Backtest{
             account:account,
         })
     }
-    pub fn print_report(&self){
-        for i in 1..self.quotes.timestamps().len(){
-            println!("date = {} - close = {:.2} - choice was = {:?} under strategy = {:} with a position = {:} worth = {:.2} and account {:.2}\
-             for a net worth = {:.2}",
-                     self.quotes.timestamps()[i].format("%Y-%m-%d"),self.quotes.close()[i],
-                     self.strategy.choices()[i],self.strategy.name(),self.position[i],self.position[i]*self.quotes.close()[i],self.account[i],
-            self.account[i]+self.position[i]*self.quotes.close()[i]);
-        }
-    }
-    pub fn print_report_arg(&self, list:&[&str])
-    {
-        //+ semplice forse fare iter su list e match {open => Data::close(),...}
-        let functions : Vec<fn(&Data)->Vec<f64>>=vec![Data::close];
-        for i in 1..self.quotes.timestamps().len(){
-            println!("{} = {:.2}",&list[0],functions[0 as usize](&self.quotes)[i]);
-        }
-    }
 
-    pub fn position(&self)->Vec<f64>{
-        return self.position.clone();
-    }
+    pub fn quotes(&self)->&Data{return &self.quotes}
+    pub fn orders(&self)->Vec<Order>{return self.strategy.choices()}
+    pub fn position(&self)->Vec<f64>{return self.position.clone()}
     pub fn account(&self)->Vec<f64>{return self.account.clone();}
-    pub fn print_report_arg2(&self, list:&[&str]){
+    pub fn strategy(&self)->Strategy{return self.strategy.clone();}
+    pub fn print_report_arg(&self, list:&[&str]){
         let mut data_functions: HashMap<&str, fn(&Data)->Vec<f64>>=HashMap::new();
         data_functions.insert("close", Data::close);
         data_functions.insert("open", Data::open);
