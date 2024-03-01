@@ -31,11 +31,16 @@ pub fn plot(backtest:Backtest) ->Result<(), Box<dyn std::error::Error>>{
 
     chart.configure_mesh().x_label_formatter(&|dt|dt.format("%Y-%m-%d").to_string()).draw().unwrap();
 
-    let indicator = backtest.strategy().indicator();
-    let Some(index) = indicator.iter().position(|&x|x!=-1.0) else {todo!()};
+//    let indicator = backtest.strategy().indicator();
+    let Some(indicator) = backtest.strategy().indicator() else { todo!() };
+//    let Some(index) = indicator[0].iter().position(|&x|x!=-1.0) else {todo!()};
     //let _ = chart.draw_series(LineSeries::new((0..opens.len()).map(|i| (yahoo_datetimes[i], opens[i])), &BLUE)).unwrap().label("open");
     //let _ = chart.draw_series(LineSeries::new((0..closes.len()).map(|i|(yahoo_datetimes[i], closes[i])),&GREEN)).unwrap().label("close");
-    let _ = chart.draw_series(LineSeries::new((index..closes.len()).map(|i|(yahoo_datetimes[i],indicator[i])),&GREEN)).unwrap().label("indicator");
+    for nr in indicator.iter(){
+//    let _ = chart.draw_series(LineSeries::new((index..closes.len()).map(|i|(yahoo_datetimes[i],indicator[0][i])),&GREEN)).unwrap().label("indicator");
+        let Some(index) = nr.iter().position(|&x|x!=-1.0) else {todo!()};
+        let _ = chart.draw_series(LineSeries::new((index..closes.len()).map(|i|(yahoo_datetimes[i],nr[i])),&GREEN)).unwrap().label("indicator");
+    }
 
 
     struct CustomRow {//no need to have a dedicated struct?

@@ -36,10 +36,12 @@ impl Backtest{
     pub fn position(&self)->Vec<f64>{return self.position.clone()}
     pub fn account(&self)->Vec<f64>{return self.account.clone();}
     pub fn strategy(&self)->Strategy{return self.strategy.clone();}
-    pub fn print_report_arg(&self, list:&[&str]){
+    pub fn log(&self, list:&[&str]){
         let mut data_functions: HashMap<&str, fn(&Data)->Vec<f64>>=HashMap::new();
         data_functions.insert("close", Data::close);
         data_functions.insert("open", Data::open);
+        data_functions.insert("low",Data::low);
+        data_functions.insert("high",Data::high);
         let mut backtest_functions: HashMap<&str, fn(&Backtest)->Vec<f64>>=HashMap::new();
         backtest_functions.insert("position",Backtest::position);
         backtest_functions.insert("account",Backtest::account);
