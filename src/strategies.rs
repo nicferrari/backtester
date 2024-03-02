@@ -95,7 +95,7 @@ pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
                choices[i] = SHORTSELL}
         }
     }
-    let name = "sma cross";
+    let name = "simple sma";
     let indicator = Some(vec![indicator.indicator()]);
     Strategy{
         name:name,
@@ -106,5 +106,21 @@ pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
 pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
     let sma_short = sma(&quotes, short_period);
     let sma_long = sma(&quotes, long_period);
-    todo!()
+    let ind_short = Indicator{indicator:sma_short,quotes:quotes.clone()};
+    let ind_long = Indicator{indicator:sma_long, quotes:quotes};
+    let length = ind_short.quotes().timestamps().len();
+    let mut choices = vec![NULL;length];
+    for i in 1..length{
+        if ind_long.indicator()[i]!=-1.{
+            if ind_short.indicator()[i]>ind_long.indicator()[i]{choices[i]=BUY}
+            else {choices[i]=SHORTSELL};
+        }
+    }
+    let name = "sma cross";
+    let indicator = Some(vec![ind_short.indicator(),ind_long.indicator()]);
+    Strategy{
+        name:name,
+        choices:choices,
+        indicator:indicator,
+    }
 }
