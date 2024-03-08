@@ -37,17 +37,17 @@ impl Strategy{
     }
     pub fn to_csv(&self)->Result<(),Box<dyn Error>>{
         let mut wrt = Writer::from_path("strategies.csv")?;
-        wrt.write_record(self.choices().iter().map(|e|e.to_string()))?;
+        //wrt.write_record(self.choices().iter().map(|e|e.to_string()))?;
+        let choices_transpose:Vec<Vec<String>>= self.choices.iter().map(|e|vec![e.clone().to_string().to_string()]).collect();
+        wrt.serialize("choices")?;
+        for col in choices_transpose.iter(){
+        wrt.serialize(col)?;}
         wrt.flush()?;
         Ok(())
     }
 }
 
 // specific strategies should only implement function to define choices: but why not returning directly Strategy?
-pub fn buy_and_hold(quotes:Data) ->Vec<Order>{
-    let length = quotes.timestamps().len();
-    return vec![BUY;length];
-}
 
 pub fn buy_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
@@ -87,7 +87,7 @@ pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
     let indicator = Indicator{indicator:sma,quotes:quotes};
     let length = indicator.quotes.timestamps().len();
     let mut choices = vec![NULL;length];
-    for i in 1..length{
+    for i in 0..length-1{
         if indicator.indicator[i]!=-1.{
             if indicator.indicator[i]>=indicator.quotes.open()[i]{
                 choices[i] = BUY;
@@ -110,7 +110,7 @@ pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
     let ind_long = Indicator{indicator:sma_long, quotes:quotes};
     let length = ind_short.quotes().timestamps().len();
     let mut choices = vec![NULL;length];
-    for i in 1..length{
+    for i in 0..length-1{
         if ind_long.indicator()[i]!=-1.{
             if ind_short.indicator()[i]>ind_long.indicator()[i]{choices[i]=BUY}
             else {choices[i]=SHORTSELL};

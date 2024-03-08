@@ -1,3 +1,4 @@
+use serde::de::Error;
 use backtester::backtester::Backtest;
 use backtester::charts::plot;
 use backtester::datas::Data;
@@ -25,11 +26,13 @@ fn main()->Result<()>{
     revert_bnh_tester.print_report_arg2(&["date","open","close","position","account"]);
 */
     let sma_cross_strategy = sma_cross(quotes.clone(), 5,10);
-    let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64)?;
+    //let sma_cross_strategy = simple_sma(quotes.clone(),5);
+    let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64);
     sma_cross_tester.calculate();   //da togliere perchè superfluo va chiamata all'inizializzazione in automatico
-    sma_cross_tester.log(&["date","open","high","low","close","position","account"]);
+    sma_cross_tester.log(&["date","open","high","low","close","position","account","indicator"]);
     //_ = plot(&quotes, &sma_cross_tester.position(), &sma_cross_tester.account(), &sma_cross_strategy.choices());
-    _ = plot(sma_cross_tester);
+    _ = plot(sma_cross_tester.clone());
+    sma_cross_tester.to_csv().expect("couldn't save backtest to file");
 
     Ok(())
 }
