@@ -22,6 +22,9 @@ let mut sma_cross_tester = Backtest::new(...)?;
 - report and chart multiple strategies at once and compare them
 - (TBC) rework the strategy definition to use only a function, if possible
 - implement error checking and lifetime of a Backtest object (linked to quotes?)
-
+- (TBC) GUI with parsing user input
+<BR>
 - check vs backtrader
 - correct buy at close
+- when order stays for different period, position should be incremented,
+or otherwise implement backtrader-style single orders

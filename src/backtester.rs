@@ -82,7 +82,7 @@ impl Backtest{
         let mut stance = Stance::NULL;
         let mut previous_position = 0.;
         let mut previous_account = 100000.;
-        for i in 0..self.quotes.timestamps().len()-1{
+        for i in 0..self.quotes.timestamps().len(){
             match self.strategy.choices()[i]{
                 orders::Order::BUY=>{
                     if stance!=Stance::LONG{
@@ -124,6 +124,8 @@ impl Backtest{
             previous_position = self.position[i];
         }
     }
+    ///print Backtest to csv.
+    ///Indicator can only be 1 or 2 at the moment
     pub fn to_csv(&self)->Result<(), Box<dyn Error>>{
         let mut wrt = Writer::from_path("backtest.csv")?;
         //transpose data for ease of readability in CSV
@@ -132,16 +134,45 @@ impl Backtest{
         let close_t:Vec<Vec<String>> = self.quotes.close().iter().map(|e|vec![e.to_string()]).collect();
         let choices_t:Vec<Vec<String>> = self.strategy.choices().iter().map(|e|vec![e.to_string().to_string()]).collect();
 
+        let position_t:Vec<Vec<String>> = self.position.iter().map(|e|vec![e.to_string()]).collect();
+        let account_t:Vec<Vec<String>> = self.account.iter().map(|e|vec![e.to_string()]).collect();
+
 //        let indicator1_t:Vec<Vec<String>> = self.strategy.indicator().iter().next().unwrap().iter().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
 //        let indicator2_t:Vec<Vec<String>> = self.strategy.indicator().iter().skip(1).next().unwrap().iter().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
 //the below work but indicator2 is Option, so could break if only one, besides also need to manage n-case
         let indicator1_t:Vec<Vec<String>> = self.strategy.indicator().iter().flatten().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
-        let indicator2_t:Vec<Vec<String>> = self.strategy.indicator().iter().flatten().skip(1).next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
+//        let indicator2_t:Vec<Vec<String>> = self.strategy.indicator().iter().flatten().skip(1).next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
 
+        let indicator2_t:Option<Vec<Vec<String>>>;
+        match self.strategy.indicator(){
+            Some(innervec)=>{
+                if innervec.len() >=2{
+                    indicator2_t = Some(self.strategy.indicator().iter().flatten().skip(1).next().unwrap().iter().map(|e|vec![e.to_string()]).collect());
+                } else {indicator2_t = None}
+            }
+            None=>{
+                indicator2_t = None;
+            }
+        }
 
+/*
         wrt.serialize(("DATE","CLOSE","CHOICES","INDIC1","INDIC2"))?;
-        for ((((col1,col2),col3),col4),col5) in timestamps_t.iter().zip(close_t.iter()).zip(choices_t.iter()).zip(indicator1_t.iter()).zip(indicator2_t.iter()){
+        for ((((col1,col2),col3),col4),col5) in timestamps_t.iter().zip(close_t.iter()).zip(choices_t.iter()).zip(indicator1_t.iter()).zip(Some(indicator2_t).iter()){
             wrt.serialize((col1,col2,col3,col4,col5))?;
+        }*/
+        if let Some(ind2_t) = indicator2_t{
+            wrt.serialize(("DATE","CLOSE","CHOICES","INDIC1","INDIC2","ACCOUNT","POSITION"))?;
+            for ((((((col1,col2),col3),col4),col5),col6),col7) in timestamps_t.iter().zip(close_t.iter()).zip(choices_t.iter())
+                .zip(indicator1_t.iter()).zip(ind2_t.iter()).zip(account_t.iter()).zip(position_t.iter()){
+                wrt.serialize((col1,col2,col3,col4,col5,col6,col7))?;
+            } }
+        else
+        {
+            wrt.serialize(("DATE","CLOSE","CHOICES","INDIC1","ACCOUNT","POSITION"))?;
+            for (((((col1,col2),col3),col4),col5),col6) in timestamps_t.iter().zip(close_t.iter()).zip(choices_t.iter())
+                .zip(indicator1_t.iter()).zip(account_t.iter()).zip(position_t.iter()){
+                wrt.serialize((col1,col2,col3,col4,col5,col6))?;
+            }
         }
         wrt.flush()?;
         Ok(())

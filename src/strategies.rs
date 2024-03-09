@@ -87,7 +87,7 @@ pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
     let indicator = Indicator{indicator:sma,quotes:quotes};
     let length = indicator.quotes.timestamps().len();
     let mut choices = vec![NULL;length];
-    for i in 0..length-1{
+    for i in 0..length{
         if indicator.indicator[i]!=-1.{
             if indicator.indicator[i]>=indicator.quotes.open()[i]{
                 choices[i] = BUY;
@@ -110,7 +110,7 @@ pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
     let ind_long = Indicator{indicator:sma_long, quotes:quotes};
     let length = ind_short.quotes().timestamps().len();
     let mut choices = vec![NULL;length];
-    for i in 0..length-1{
+    for i in 0..length{
         if ind_long.indicator()[i]!=-1.{
             if ind_short.indicator()[i]>ind_long.indicator()[i]{choices[i]=BUY}
             else {choices[i]=SHORTSELL};
