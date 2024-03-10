@@ -1,4 +1,7 @@
 use chrono::{DateTime, FixedOffset, TimeZone};
+use csv::Writer;
+//use serde::de::Error;
+//use std::error::Error;
 use yahoo_finance_api as yahoo;
 use yahoo_finance_api::Quote;
 use tokio_test;
@@ -38,6 +41,20 @@ impl Data{
             low:lows,
             close:closes,
         })
+    }
+    pub fn save(&self)->Result<()>{
+        let mut wrt = Writer::from_path("savedata.csv").expect("path not valid");
+        let dates_t:Vec<Vec<String>> = self.datetime.iter().map(|e|vec![e.to_string()]).collect();
+        let open_t:Vec<Vec<String>> = self.open.iter().map(|e|vec![e.to_string()]).collect();
+        let high_t:Vec<Vec<String>> = self.high.iter().map(|e|vec![e.to_string()]).collect();
+        let low_t:Vec<Vec<String>> = self.low.iter().map(|e|vec![e.to_string()]).collect();
+        let close_t:Vec<Vec<String>> = self.close.iter().map(|e|vec![e.to_string()]).collect();
+        wrt.serialize(("DATE","OPEN","HIGH","LOW","CLOSE")).expect("cannot write data");
+        for ((((date,open),high),low),close) in dates_t.iter().zip(open_t.iter()).zip(high_t.iter()).zip(low_t.iter()).zip(close_t.iter()){
+            wrt.serialize((date,open,high,low,close)).expect("cannot write data");
+        }
+        wrt.flush().expect("cannot write file");
+        Ok(())
     }
     pub fn ticker(&self)->&str{
         return &*self.ticker;

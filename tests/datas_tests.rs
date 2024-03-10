@@ -10,5 +10,6 @@ fn download_test()->Result<()>{
     let a:Data=Data::new_from_yahoo("AAPL".to_string())?;
     assert_eq!(a.ticker(),"AAPL");
     let quotes = download_data(a.ticker(),"1d","1mo")?;
+    a.save()?;
     Ok(())
 }
