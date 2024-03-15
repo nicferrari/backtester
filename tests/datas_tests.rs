@@ -11,5 +11,7 @@ fn download_test()->Result<()>{
     assert_eq!(a.ticker(),"AAPL");
     let quotes = download_data(a.ticker(),"1d","1mo")?;
     a.save()?;
+    let b = Data::load("savedata.csv","test")?;
+    assert_eq!(b.ticker(),"test");
     Ok(())
 }

@@ -55,7 +55,7 @@ impl Backtest{
         backtest_functions.insert("account",Backtest::account);
         let mut strategy_function: HashMap<&str, fn(&Strategy)->Option<Vec<Vec<f64>>>>=HashMap::new();
         strategy_function.insert("indicator",Strategy::indicator);
-        for i in 0..self.quotes.timestamps().len()-1{
+        for i in 0..self.quotes.timestamps().len(){
             print!("Date = {:} - ",&self.quotes.timestamps()[i].format("%Y-%m-%d"));
             for j in list{
                 if let Some(func) = data_functions.get(j){
@@ -82,14 +82,14 @@ impl Backtest{
         let mut stance = Stance::NULL;
         let mut previous_position = 0.;
         let mut previous_account = 100000.;
-        for i in 0..self.quotes.timestamps().len(){
-            match self.strategy.choices()[i]{
+        for i in 1..self.quotes.timestamps().len(){
+            match self.strategy.choices()[i-1]{
                 orders::Order::BUY=>{
                     if stance!=Stance::LONG{
-                        let networth = previous_account + previous_position * self.quotes.close()[i];//to be changed to open
+                        let networth = previous_account + previous_position * self.quotes.open()[i];//to be changed to open
                         //self.position[i] = ((self.account[i]/self.quotes.close()[i]) as i64) as f64;
-                        self.position[i] = ((networth/self.quotes.close()[i]) as i64) as f64;
-                        self.account[i] = networth-self.position[i]*self.quotes.close()[i];
+                        self.position[i] = ((networth/self.quotes.open()[i]) as i64) as f64;
+                        self.account[i] = networth-self.position[i]*self.quotes.open()[i];
                         stance = Stance::LONG;
                     } else {
                         self.position[i] = previous_position;
@@ -98,10 +98,10 @@ impl Backtest{
                 }
                 orders::Order::SHORTSELL=>{
                     if stance!=Stance::SHORT{
-                        let networth = previous_account + previous_position * self.quotes.close()[i];//to be changed to open
+                        let networth = previous_account + previous_position * self.quotes.open()[i];//to be changed to open
                         //self.position[i] = -((self.account[i]/self.quotes.close()[i]) as i64) as f64;
-                        self.position[i] = -((networth/self.quotes.close()[i]) as i64) as f64;
-                        self.account[i] = networth-self.position[i]*self.quotes.close()[i];
+                        self.position[i] = -((networth/self.quotes.open()[i]) as i64) as f64;
+                        self.account[i] = networth-self.position[i]*self.quotes.open()[i];
                         stance = Stance::SHORT;
                     } else {
                         self.position[i] = previous_position;
@@ -110,7 +110,7 @@ impl Backtest{
                 }
                 orders::Order::NULL=>{
                     if stance!=Stance::NULL{
-                        let networth = previous_account + previous_position * self.quotes.close()[i];//to be changed to open
+                        let networth = previous_account + previous_position * self.quotes.open()[i];//to be changed to open
                         self.position[i]=0.;
                         self.account[i]=networth;
                         stance = Stance::NULL;
@@ -131,6 +131,7 @@ impl Backtest{
         //transpose data for ease of readability in CSV
         //the part below can be macro-ed
         let timestamps_t:Vec<Vec<String>> = self.quotes.timestamps().iter().map(|e|vec![e.to_string()[0..10].to_string()]).collect();
+        let open_t:Vec<Vec<String>> = self.quotes.open().iter().map(|e|vec![e.to_string()]).collect();
         let close_t:Vec<Vec<String>> = self.quotes.close().iter().map(|e|vec![e.to_string()]).collect();
         let choices_t:Vec<Vec<String>> = self.strategy.choices().iter().map(|e|vec![e.to_string().to_string()]).collect();
 
@@ -161,17 +162,17 @@ impl Backtest{
             wrt.serialize((col1,col2,col3,col4,col5))?;
         }*/
         if let Some(ind2_t) = indicator2_t{
-            wrt.serialize(("DATE","CLOSE","CHOICES","INDIC1","INDIC2","ACCOUNT","POSITION"))?;
-            for ((((((col1,col2),col3),col4),col5),col6),col7) in timestamps_t.iter().zip(close_t.iter()).zip(choices_t.iter())
+            wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","INDIC2","ACCOUNT","POSITION"))?;
+            for (((((((col1,col2),col3),col4),col5),col6),col7),col8) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
                 .zip(indicator1_t.iter()).zip(ind2_t.iter()).zip(account_t.iter()).zip(position_t.iter()){
-                wrt.serialize((col1,col2,col3,col4,col5,col6,col7))?;
+                wrt.serialize((col1,col2,col3,col4,col5,col6,col7,col8))?;
             } }
         else
         {
-            wrt.serialize(("DATE","CLOSE","CHOICES","INDIC1","ACCOUNT","POSITION"))?;
-            for (((((col1,col2),col3),col4),col5),col6) in timestamps_t.iter().zip(close_t.iter()).zip(choices_t.iter())
+            wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","ACCOUNT","POSITION"))?;
+            for ((((((col1,col2),col3),col4),col5),col6),col7) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
                 .zip(indicator1_t.iter()).zip(account_t.iter()).zip(position_t.iter()){
-                wrt.serialize((col1,col2,col3,col4,col5,col6))?;
+                wrt.serialize((col1,col2,col3,col4,col5,col6,col7))?;
             }
         }
         wrt.flush()?;

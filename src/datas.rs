@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset, TimeZone};
-use csv::Writer;
+use csv::{Writer,Reader};
+use serde::ser::Error;
 //use serde::de::Error;
 //use std::error::Error;
 use yahoo_finance_api as yahoo;
@@ -43,7 +44,7 @@ impl Data{
         })
     }
     pub fn save(&self)->Result<()>{
-        let mut wrt = Writer::from_path("savedata.csv").expect("path not valid");
+        let mut wrt = Writer::from_path("savedata.csv").expect("invalid path");
         let dates_t:Vec<Vec<String>> = self.datetime.iter().map(|e|vec![e.to_string()]).collect();
         let open_t:Vec<Vec<String>> = self.open.iter().map(|e|vec![e.to_string()]).collect();
         let high_t:Vec<Vec<String>> = self.high.iter().map(|e|vec![e.to_string()]).collect();
@@ -55,6 +56,36 @@ impl Data{
         }
         wrt.flush().expect("cannot write file");
         Ok(())
+    }
+    ///load data from csv OHLC (no volume) format at specified path
+    pub fn load(path:&str, ticker:&str)->Result<Self>{
+        let mut rdr = csv::Reader::from_path(path).expect("couldn't read file");
+        let mut datetime= Vec::new();
+        let mut open = Vec::new();
+        let mut high = Vec::new();
+        let mut low = Vec::new();
+        let mut close = Vec::new();
+        for result in rdr.records(){
+            let record = result.expect("tua nonna");
+            let dates:DateTime<FixedOffset> = record[0].parse().expect("couldn't read data");
+            let opens:f64 = record[1].parse().expect("couldn't read data");
+            let highs:f64 = record[2].parse().expect("couldn't read data");
+            let lows:f64 = record[3].parse().expect("couldn't read data");
+            let closes:f64 = record[4].parse().expect("couldn't read data");
+            datetime.push(dates);
+            open.push(opens);
+            high.push(highs);
+            low.push(lows);
+            close.push(closes);
+        }
+        Ok(Data{
+            ticker:ticker.to_string(),
+            datetime,
+            open,
+            high,
+            low,
+            close,
+        })
     }
     pub fn ticker(&self)->&str{
         return &*self.ticker;
