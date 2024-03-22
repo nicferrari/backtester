@@ -3,7 +3,7 @@ use backtester::Result;
 use backtester::ta::{sma,Indicator};
 #[test]
 fn indicator_tests()->Result<()>{
-    let quotes = &Data::new_from_yahoo("AAPL".to_string())?;
+    let quotes = &Data::new_from_yahoo("AAPL")?;
     let indicator = sma(quotes,5);
     println!("{:?}",indicator);
     println!("{:?}",quotes.close());

@@ -15,6 +15,6 @@ pub fn main()->Result<(),Box<dyn Error>>{
     let mut cmp_backt=Vec::new();
     cmp_backt.push(sma_backt);
     cmp_backt.push(sma_cross_backt);
-    compare(cmp_backt);
+    compare(&cmp_backt);
     Ok(())
 }

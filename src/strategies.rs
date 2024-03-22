@@ -3,6 +3,7 @@ use crate::datas::Data;
 use crate::orders::Order;
 use crate::orders::Order::{BUY,SHORTSELL,NULL};
 use std::error::Error;
+use std::fmt::format;
 use yahoo_finance_api::Quote;
 use crate::ta::{Indicator,sma};
 ///struct to hold vector of choices and indicators.
@@ -11,7 +12,7 @@ use crate::ta::{Indicator,sma};
 #[derive(Clone)]
 pub struct Strategy{
     //name:String,
-    name:&'static str,
+    name:String,
     choices:Vec<Order>,
     indicator:Option<Vec<Vec<f64>>>,
 }
@@ -20,7 +21,7 @@ impl Strategy{
     pub fn choices(&self)->Vec<Order>{
         return self.choices.clone();
     }
-    pub fn name(&self)->&'static str{ return self.name;}
+    pub fn name(&self)->&String{ return &self.name;}
     pub fn indicator(&self)->Option<Vec<Vec<f64>>>{ return self.indicator.clone();}
     pub fn invert(&self) ->Self{
         let length = self.choices.len();
@@ -30,7 +31,7 @@ impl Strategy{
         }
         let indicator = self.indicator.clone();
         Strategy{
-            name:"invert",
+            name:"invert".to_string(),
             choices: inv_choices,
             indicator,
         }
@@ -52,7 +53,7 @@ impl Strategy{
 pub fn buy_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![BUY;length];
-    let name = "buy and hold";
+    let name = "buy and hold".to_string();
     let indicator = Some(vec![vec![-1.;length]]);
     Strategy{
         name:name,
@@ -63,7 +64,7 @@ pub fn buy_n_hold(quotes:Data)->Strategy{
 pub fn short_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![SHORTSELL;length];
-    let name = "short and hold";
+    let name = "short and hold".to_string();
     let indicator = Some(vec![vec![-1.;length]]);
     Strategy{
         name:name,
@@ -74,7 +75,7 @@ pub fn short_n_hold(quotes:Data)->Strategy{
 pub fn do_nothing(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![NULL;length];
-    let name = "do nothing";
+    let name = "do nothing".to_string();
     let indicator = Some(vec![vec![-1.;length]]);
     Strategy{
         name:name,
@@ -95,7 +96,7 @@ pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
                choices[i] = SHORTSELL}
         }
     }
-    let name = "simple sma";
+    let name = format!("simple_sma_{}",period);
     let indicator = Some(vec![indicator.indicator()]);
     Strategy{
         name:name,
@@ -107,7 +108,7 @@ pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
     let sma_short = sma(&quotes, short_period);
     let sma_long = sma(&quotes, long_period);
     let ind_short = Indicator{indicator:sma_short,quotes:quotes.clone()};
-    let ind_long = Indicator{indicator:sma_long, quotes:quotes};
+    let ind_long = Indicator{indicator:sma_long, quotes:quotes.clone()};
     let length = ind_short.quotes().timestamps().len();
     let mut choices = vec![NULL;length];
     for i in 0..length{
@@ -116,7 +117,7 @@ pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
             else {choices[i]=SHORTSELL};
         }
     }
-    let name = "sma cross";
+    let name=format!("sma_cross_{}_{}",short_period,long_period);
     let indicator = Some(vec![ind_short.indicator(),ind_long.indicator()]);
     Strategy{
         name:name,

@@ -26,7 +26,7 @@ let quotes = Data::load("GOOG.csv","GOOG")?;
 - As an alternative, you can retrieve data directly from yahoo finance with the following
 which makes use of the crate yahoo-finance-api
 ```rust
-let quotes = Data::new_from_yahoo("GOOG".to_string())?;
+let quotes = Data::new_from_yahoo("GOOG")?;
 ```
 - Create a function which return a Strategy or use one provided by the library.<BR>
 A Strategy is simply a vector of Choices (e.g. BUY, SHORTSELL, ...)
@@ -59,6 +59,7 @@ sma_cross_tester.calculate();
     ```rust
     sma_cross_tester.to_csv()?;
     ```
+  - you can also compare multiple strategies at once (work in progress)
 
 ## Further enhancements (to be made)
 - include user-defined commissions

@@ -77,7 +77,7 @@ impl Backtest{
             println!();
         }
     }
-    ///function which do the actual backtest and returns a vector of (signed) positions and account values
+    ///function which does the actual backtest and returns a vector of (signed) positions and account values
     pub fn calculate(&mut self){
         let mut stance = Stance::NULL;
         let mut previous_position = 0.;

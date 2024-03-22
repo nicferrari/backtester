@@ -26,7 +26,7 @@ pub struct Data{
 }
 
 impl Data{
-    pub fn new_from_yahoo(ticker:String) ->Result<Self>{
+    pub fn new_from_yahoo(ticker:&str) ->Result<Self>{
         let quotes = download_data(&ticker,"1d","1mo")?;
         let timestamps:Vec<u64> = quotes.iter().map(|s|s.timestamp).collect();
         let yahoo_datetimes: Vec<DateTime<FixedOffset>> = timestamps.iter().map(|&ts|{FixedOffset::east_opt(0).unwrap().timestamp_opt(ts as i64,0).unwrap()}).collect();
@@ -35,7 +35,7 @@ impl Data{
         let lows:Vec<f64> = quotes.iter().map(|s|s.low).collect();
         let closes:Vec<f64> = quotes.iter().map(|s|s.close).collect();
         Ok(Data{
-            ticker:ticker,
+            ticker:ticker.to_string(),
             datetime:yahoo_datetimes,
             open:opens,
             high:highs,

@@ -43,10 +43,18 @@ pub fn report(backtest: &Backtest){
     println!("Worst Trade [%]    {:.2}",max_loss*100.);
 //    Ok(())
 }
-pub fn compare(backtests:Vec<Backtest>){
+///function to compare multiple backtest
+///at the moment only compare returns
+pub fn compare(backtests:&Vec<Backtest>){
     //println!("Strategies    {:} vs {:}",backtests[0].strategy().name(),backtests[1].strategy().name());
     print!("Strategies    ");
-    for i in 0..backtests.len(){
-        print!("{:}     ",backtests[i].strategy().name());
+    for i in backtests{
+        print!("{:}     ",i.strategy().name());
+    }
+    print!("\nReturn        ");
+    for i in backtests{
+        let equity_final = i.position().last().unwrap()*i.quotes().close().last().unwrap()+i.account().last().unwrap();
+        let ret = (equity_final-100000.)/100000.;
+        print!("{:.2}%          ",ret*100.);
     }
 }
