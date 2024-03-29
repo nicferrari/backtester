@@ -34,7 +34,7 @@ fn main()->Result<(),Box<dyn Error>>{
     sma_cross_tester.log(&["date","open","high","low","close","position","account","indicator"]);
     //_ = plot(&quotes, &sma_cross_tester.position(), &sma_cross_tester.account(), &sma_cross_strategy.choices());
     plot(sma_cross_tester.clone())?;
-    sma_cross_tester.to_csv()?;//.expect("couldn't save backtest to file");
+    sma_cross_tester.to_csv("sma_cross.csv")?;//.expect("couldn't save backtest to file");
     report(&sma_cross_tester);
     Ok(())
 }

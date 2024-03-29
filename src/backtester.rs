@@ -126,8 +126,8 @@ impl Backtest{
     }
     ///print Backtest to csv.
     ///Indicator can only be 1 or 2 at the moment
-    pub fn to_csv(&self)->Result<(), Box<dyn Error>>{
-        let mut wrt = Writer::from_path("backtest.csv")?;
+    pub fn to_csv(&self, filename:&str)->Result<(), Box<dyn Error>>{
+        let mut wrt = Writer::from_path(filename)?;
         //transpose data for ease of readability in CSV
         //the part below can be macro-ed
         let timestamps_t:Vec<Vec<String>> = self.quotes.timestamps().iter().map(|e|vec![e.to_string()[0..10].to_string()]).collect();

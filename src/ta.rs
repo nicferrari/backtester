@@ -45,3 +45,18 @@ pub fn sma(quotes:&Data, period:usize)->Vec<f64>{
     }
     return indicator;
 }
+pub fn rsi(quotes:&Data, period:usize)->Vec<f64>{
+    let mut indicator:Vec<f64> = vec![-1.;period-1];
+    let length = quotes.timestamps().len();
+    let diff:&Vec<f64> = &quotes.close().iter().zip(quotes.open().iter()).map(|(a,b)|a-b).collect();
+    for i in period..length+1{
+        let slice = &diff[i-period..i];
+        let positive:Vec<f64> = slice.iter().cloned().filter(|&x|x>0.0).collect();
+        let negative:Vec<f64> = slice.iter().cloned().filter(|&x|x<0.0).collect();
+        let sum_pos:f64 = Iterator::sum(positive.iter());
+        let sum_neg:f64 = Iterator::sum(negative.iter());
+        let rsi = 100. * (sum_pos/(positive.len() as f64))/(sum_pos/(positive.len() as f64)-sum_neg/(negative.len() as f64));
+        indicator.append(&mut vec![rsi;1])
+    }
+    return indicator;
+}

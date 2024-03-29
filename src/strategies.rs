@@ -5,7 +5,7 @@ use crate::orders::Order::{BUY,SHORTSELL,NULL};
 use std::error::Error;
 use std::fmt::format;
 use yahoo_finance_api::Quote;
-use crate::ta::{Indicator,sma};
+use crate::ta::{Indicator,sma,rsi};
 ///struct to hold vector of choices and indicators.
 /// there is no specific constructor.
 /// need to be created via dedicated user-defined functions which return a Strategy
@@ -123,5 +123,24 @@ pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
         name:name,
         choices:choices,
         indicator:indicator,
+    }
+}
+pub fn rsi_strategy(quotes:Data, period:usize)->Strategy{
+    let rsi = rsi(&quotes,period);
+    let indicator = Indicator{indicator:rsi,quotes};
+    let length = indicator.quotes().timestamps().len();
+    let mut choices = vec![NULL;length];
+    for i in 0..length{
+        if indicator.indicator()[i]!=-1.{
+            if indicator.indicator()[i]>70.{choices[i]=SHORTSELL}
+            else if indicator.indicator()[i]<30. {choices[i]=BUY}
+        }
+    }
+    let name = format!("rsi_{}",period);
+    let indicator=Some(vec![indicator.indicator()]);
+    Strategy{
+        name,
+        choices,
+        indicator,
     }
 }
