@@ -10,8 +10,8 @@ pub struct Indicator{
 }
 
 impl Indicator{
-    pub fn to_csv(&self)->Result<(), Box<dyn Error>>{
-        let mut wrt = Writer::from_path("provacsv.csv")?;
+    pub fn to_csv(&self, filename:&str)->Result<(), Box<dyn Error>>{
+        let mut wrt = Writer::from_path(filename)?;
 //        wrt.write_record(self.indicator.iter().map(|e| e.to_string()))?;
 //        wrt.write_record(self.quotes.close().iter().map(|e| e.to_string()))?;
         let transpose_indic:Vec<Vec<String>> = self.indicator.iter().map(|e|vec![e.clone().to_string()]).collect();

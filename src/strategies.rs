@@ -3,8 +3,6 @@ use crate::datas::Data;
 use crate::orders::Order;
 use crate::orders::Order::{BUY,SHORTSELL,NULL};
 use std::error::Error;
-use std::fmt::format;
-use yahoo_finance_api::Quote;
 use crate::ta::{Indicator,sma,rsi};
 ///struct to hold vector of choices and indicators.
 /// there is no specific constructor.
@@ -36,8 +34,8 @@ impl Strategy{
             indicator,
         }
     }
-    pub fn to_csv(&self)->Result<(),Box<dyn Error>>{
-        let mut wrt = Writer::from_path("strategies.csv")?;
+    pub fn to_csv(&self, filename:&str)->Result<(),Box<dyn Error>>{
+        let mut wrt = Writer::from_path(filename)?;
         //wrt.write_record(self.choices().iter().map(|e|e.to_string()))?;
         let choices_transpose:Vec<Vec<String>>= self.choices.iter().map(|e|vec![e.clone().to_string().to_string()]).collect();
         wrt.serialize("choices")?;

@@ -3,7 +3,6 @@ use backtester::backtester::Backtest;
 use backtester::charts::plot;
 use backtester::datas::Data;
 use backtester::strategies::{sma_cross};
-//use backtester::Result;
 use backtester::report::report;
 
 fn main()->Result<(),Box<dyn Error>>{

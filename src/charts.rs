@@ -1,9 +1,6 @@
 use plotters::prelude::*;
-use crate::{datas};
 use chrono::{DateTime, FixedOffset};
-use datas::Data;
 use crate::backtester::Backtest;
-use crate::orders::Order;
 
 //pub fn plot(quotes:&Data, position:&Vec<f64>, account:&Vec<f64>, orders:&Vec<Order>) ->Result<(), Box<dyn std::error::Error>>{
 pub fn plot(backtest:Backtest) ->Result<(), Box<dyn std::error::Error>>{

@@ -1,14 +1,12 @@
 use chrono::{DateTime, FixedOffset, TimeZone};
-use csv::{Writer,Reader};
-use serde::ser::Error;
-//use serde::de::Error;
-//use std::error::Error;
+use csv::{Writer};
 use yahoo_finance_api as yahoo;
 use yahoo_finance_api::Quote;
 use tokio_test;
-use crate::errors::Result;
+//use crate::errors::Result;
+use std::error::Error;
 
-pub fn download_data(ticker:&str, interval:&str, range:&str)->Result<Vec<Quote>>{
+fn download_data(ticker:&str, interval:&str, range:&str)->Result<Vec<Quote>,Box<dyn Error>>{
     let provider = yahoo::YahooConnector::new();
     let response = tokio_test::block_on(provider.get_quote_range(ticker, interval, range)).unwrap();
     let quotes = response.quotes().unwrap();
@@ -26,8 +24,9 @@ pub struct Data{
 }
 
 impl Data{
-    pub fn new_from_yahoo(ticker:&str) ->Result<Self>{
-        let quotes = download_data(&ticker,"1d","1mo")?;
+    ///retrieve OHLC data from yahoo
+    pub fn new_from_yahoo(ticker:&str, interval:&str, range:&str) ->Result<Self, Box<dyn Error>>{
+        let quotes = download_data(&ticker,interval, range)?;
         let timestamps:Vec<u64> = quotes.iter().map(|s|s.timestamp).collect();
         let yahoo_datetimes: Vec<DateTime<FixedOffset>> = timestamps.iter().map(|&ts|{FixedOffset::east_opt(0).unwrap().timestamp_opt(ts as i64,0).unwrap()}).collect();
         let opens:Vec<f64> = quotes.iter().map(|s|s.open).collect();
@@ -43,8 +42,8 @@ impl Data{
             close:closes,
         })
     }
-    pub fn save(&self)->Result<()>{
-        let mut wrt = Writer::from_path("savedata.csv").expect("invalid path");
+    pub fn save(&self, filename:&str)->Result<(), Box<dyn Error>>{
+        let mut wrt = Writer::from_path(filename).expect("invalid path");
         let dates_t:Vec<Vec<String>> = self.datetime.iter().map(|e|vec![e.to_string()]).collect();
         let open_t:Vec<Vec<String>> = self.open.iter().map(|e|vec![e.to_string()]).collect();
         let high_t:Vec<Vec<String>> = self.high.iter().map(|e|vec![e.to_string()]).collect();
@@ -58,7 +57,7 @@ impl Data{
         Ok(())
     }
     ///load data from csv OHLC (no volume) format at specified path
-    pub fn load(path:&str, ticker:&str)->Result<Self>{
+    pub fn load(path:&str, ticker:&str)->Result<Self,Box<dyn Error>>{
         let mut rdr = csv::Reader::from_path(path).expect("couldn't read file");
         let mut datetime= Vec::new();
         let mut open = Vec::new();
