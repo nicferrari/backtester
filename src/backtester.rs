@@ -6,6 +6,7 @@ use crate::{orders};
 use crate::datas::Data;
 use crate::orders::Order;
 
+///to create a Backtest use Backtest::new()
 #[derive(Clone)]
 pub struct Backtest{
     quotes:Data,
@@ -34,7 +35,6 @@ impl Backtest{
             account:account,
         }
     }
-
     pub fn quotes(&self)->&Data{return &self.quotes}
     pub fn orders(&self)->Vec<Order>{return self.strategy.choices()}
     pub fn position(&self)->Vec<f64>{return self.position.clone()}
