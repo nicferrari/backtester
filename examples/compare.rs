@@ -1,3 +1,4 @@
+use std::env;
 use std::error::Error;
 use backtester::backtester::Backtest;
 use backtester::datas::Data;
@@ -8,6 +9,7 @@ use std::env::{args};
 pub fn main()->Result<(),Box<dyn Error>>{
     //call with optional --file="xxx.csv"
     let args:Vec<String> = args().collect();
+//    let fallback_file = "C:\\Users\\nicfe\\RustroverProjects\\backtester\\target\\debug\\examples\\GOOGLE.csv";
     let fallback_file = "GOOGLE.csv";
     let mut filename = fallback_file;
     for arg in &args{
@@ -15,7 +17,8 @@ pub fn main()->Result<(),Box<dyn Error>>{
             filename = &arg[11..];
         }
     }
-    println!("Trying to load filename = {}",filename);
+    let path = env::current_dir();
+    println!("Trying to load filename = {:?} \\ {}",path,filename);
     let quotes = Data::load(filename,"GOOG")?;
     let sma_cross = sma_cross(quotes.clone(),10,20);
     let sma = simple_sma(quotes.clone(),10);

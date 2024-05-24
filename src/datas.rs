@@ -1,3 +1,4 @@
+use std::env;
 use chrono::{DateTime, FixedOffset, TimeZone};
 use csv::{Writer};
 use yahoo_finance_api as yahoo;
@@ -58,14 +59,15 @@ impl Data{
     }
     ///load data from csv OHLC (no volume) format at specified path
     pub fn load(path:&str, ticker:&str)->Result<Self,Box<dyn Error>>{
-        let mut rdr = csv::Reader::from_path(path).expect("couldn't read file");
+        let path2 = env::current_dir();
+        let mut rdr = csv::Reader::from_path(path).expect(&format!("couldn't read file in {:?}",path2));
         let mut datetime= Vec::new();
         let mut open = Vec::new();
         let mut high = Vec::new();
         let mut low = Vec::new();
         let mut close = Vec::new();
         for result in rdr.records(){
-            let record = result.expect("tua nonna");
+            let record = result.expect("couldn't read data");
             let dates:DateTime<FixedOffset> = record[0].parse().expect("couldn't read data");
             let opens:f64 = record[1].parse().expect("couldn't read data");
             let highs:f64 = record[2].parse().expect("couldn't read data");
