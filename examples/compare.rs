@@ -7,7 +7,8 @@ use backtester::report::compare;
 use std::env::{args};
 
 pub fn main()->Result<(),Box<dyn Error>>{
-    //call with optional --file="xxx.csv"
+    //call with optional --filename="xxx.csv"
+    //fallback to "GOOGLE.csv" which should be in directory
     let args:Vec<String> = args().collect();
 //    let fallback_file = "C:\\Users\\nicfe\\RustroverProjects\\backtester\\target\\debug\\examples\\GOOGLE.csv";
     let fallback_file = "GOOGLE.csv";
@@ -17,8 +18,8 @@ pub fn main()->Result<(),Box<dyn Error>>{
             filename = &arg[11..];
         }
     }
-    let path = env::current_dir();
-    println!("Trying to load filename = {:?} \\ {}",path,filename);
+    let path = env::current_dir()?;
+    println!("Trying to load filename = {:?}",path.into_os_string().into_string().unwrap()+"\\"+filename);
     let quotes = Data::load(filename,"GOOG")?;
     let sma_cross = sma_cross(quotes.clone(),10,20);
     let sma = simple_sma(quotes.clone(),10);
