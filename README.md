@@ -28,7 +28,7 @@ which makes use of the crate yahoo-finance-api
 ```rust
 let quotes = Data::new_from_yahoo("GOOG")?;
 ```
-- Create a function which return a Strategy or use one provided by the library.<BR>
+- Create a function which returns a Strategy or use one provided by the library.<BR>
 A Strategy is simply a vector of Choices (e.g. BUY, SHORTSELL, ...)
 and the indicator used
 ```rust

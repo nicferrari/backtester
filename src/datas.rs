@@ -8,8 +8,9 @@ use tokio_test;
 use std::error::Error;
 
 fn download_data(ticker:&str, interval:&str, range:&str)->Result<Vec<Quote>,Box<dyn Error>>{
-    let provider = yahoo::YahooConnector::new();
+    let provider = yahoo::YahooConnector::new().unwrap();
     let response = tokio_test::block_on(provider.get_quote_range(ticker, interval, range)).unwrap();
+    //let response = tokio_test::block_on(provider.get_quote_range("AAPL", "1d", "1mo")).unwrap();
     let quotes = response.quotes().unwrap();
     return Ok(quotes);
 }
