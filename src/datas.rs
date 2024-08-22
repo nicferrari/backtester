@@ -1,13 +1,15 @@
 use std::env;
-use chrono::{DateTime, FixedOffset, TimeZone};
+use chrono::{DateTime, Duration, FixedOffset, TimeZone};
 use csv::{Writer};
 use yahoo_finance_api as yahoo;
-use yahoo_finance_api::Quote;
+use yahoo_finance_api::{Quote, time};
 use tokio_test;
 //use crate::errors::Result;
 use std::error::Error;
+use yahoo_finance_api::time::macros::datetime;
+use std::str::FromStr;
 
-fn download_data(ticker:&str, interval:&str, range:&str)->Result<Vec<Quote>,Box<dyn Error>>{
+fn download_data(ticker:&str, interval:&str, range:&str) ->Result<Vec<Quote>,Box<dyn Error>>{
     let provider = yahoo::YahooConnector::new().unwrap();
     let response = tokio_test::block_on(provider.get_quote_range(ticker, interval, range)).unwrap();
     //let response = tokio_test::block_on(provider.get_quote_range("AAPL", "1d", "1mo")).unwrap();
@@ -103,4 +105,39 @@ impl Data{
     pub fn close(&self)->Vec<f64>{
         return self.close.clone();
     }
+
+    pub fn ret(&self)->f64{
+        println!("{}",self.timestamps().first().unwrap());
+        println!("{}",self.timestamps().last().unwrap());
+        println!("{}",self.close.last().unwrap());
+        println!("{}",self.close.first().unwrap());
+        return (self.close.last().unwrap()/self.open.first().unwrap()-1.)*100.;
+    }
+    pub fn ret_from_date(&self, start_date:DateTime<FixedOffset>)->f64{
+        let pos = self.datetime.iter().position(|&x|x>=start_date).unwrap();
+        return self.close[pos];
+    }
+    ///give return on given period (accepts xd(-ays) or xw(-eeks) where x is an integer)
+    pub fn ret_from_period(&self,term:&str)->f64{
+        let last_date = self.datetime.last().unwrap();
+        //let sought_date = last_date.checked_sub_signed(Duration::weeks(1)).unwrap();
+        //let term = "2w";
+        let sought_date = match term.chars().last(){
+            Some(w)=>last_date.checked_sub_signed(Duration::weeks(term[..term.len()-1].parse().unwrap())).unwrap(),
+            Some(d)=>last_date.checked_sub_signed(Duration::days(term[..term.len()-1].parse().unwrap())).unwrap(),
+            None=>*last_date,
+        };
+        println!("looking for {:}",sought_date);
+        let pos = self.datetime.iter().position(|&x|x>=sought_date).unwrap();
+        println!("date found was {:} - {:}",self.datetime[pos],self.close[pos]);
+        println!("final valuation date {:} - {:}",self.datetime.last().unwrap(),self.close().last().unwrap());
+        return (self.close.last().unwrap()/self.close[pos]-1.)*100.;
+    }
+    ///helper function to show data (datetime - close)
+    pub fn show(&self){
+        for i in 1 .. self.datetime.len(){
+            println!("{} - {}",self.datetime[i],self.close[i]);
+        }
+    }
+
 }

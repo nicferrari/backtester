@@ -5,7 +5,7 @@ use backtester::charts::{plot, Plot_Config};
 use std::error::Error;
 
 pub fn main() -> Result<(),Box<dyn Error>> {
-    let data = Data::new_from_yahoo("GOOG","1m", "1d")?;
+    let data = Data::new_from_yahoo("GOOG","1d", "1y")?;
     // TODO: calling chart with buy_n_hold or simply add possibility to chart only data;
     let strategy = sma_cross(data.clone(), 5, 15);
     let mut backtest = Backtest::new(data.clone(), strategy, 100000.);

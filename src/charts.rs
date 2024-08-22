@@ -17,8 +17,8 @@ pub fn plot_old(backtest:Backtest) ->Result<(), Box<dyn std::error::Error>>{
 
     let (upper,lower) = root.split_vertically(512);
 
-    let min_lows = *lows.iter().min_by(|x,y|x.partial_cmp(y).unwrap()).unwrap()-5.0;
-    let max_highs = *highs.iter().max_by(|x,y|x.partial_cmp(y).unwrap()).unwrap()+5.0;
+    let min_lows = *lows.iter().min_by(|x,y|x.partial_cmp(y).unwrap()).unwrap()*0.985;
+    let max_highs = *highs.iter().max_by(|x,y|x.partial_cmp(y).unwrap()).unwrap()*1.025;
 
     let mut chart = ChartBuilder::on(&upper)
         .margin(5)
@@ -114,8 +114,8 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 
     let (upper,lower) = root.split_vertically(512);
 
-    let min_lows = *lows.iter().min_by(|x,y|x.partial_cmp(y).unwrap()).unwrap()-5.0;
-    let max_highs = *highs.iter().max_by(|x,y|x.partial_cmp(y).unwrap()).unwrap()+5.0;
+    let min_lows = *lows.iter().min_by(|x,y|x.partial_cmp(y).unwrap()).unwrap()*0.995;
+    let max_highs = *highs.iter().max_by(|x,y|x.partial_cmp(y).unwrap()).unwrap()*1.005;
 
     let mut chart: ChartContext<BitMapBackend, Cartesian2d<RangedDateTime<DateTime<FixedOffset>>, RangedCoordf64>>;
 
@@ -141,7 +141,7 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
         let Some(indicator) = backtest.strategy().indicator() else { todo!() };
         for nr in indicator.iter() {
             let Some(index) = nr.iter().position(|&x| x != -1.0) else { todo!() };
-            let _ = chart.draw_series(LineSeries::new((index..closes.len()).map(|i| (yahoo_datetimes[i], nr[i])), &GREEN)).unwrap().label("indicator");
+            let _ = chart.draw_series(LineSeries::new((index..closes.len()).map(|i| (yahoo_datetimes[i], nr[i])), &BLUE)).unwrap().label("indicator");
         }
     }
 
@@ -158,22 +158,24 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 
     let _ = chart.draw_series(
         x.iter().map(|x| {
-            CandleStick::new(x.date,x.value1, x.value2, x.value3, x.value4, GREEN.filled(), RED, 15)
+            CandleStick::new(x.date,x.value1, x.value2, x.value3, x.value4, GREEN.filled(), RED.filled(), (500/yahoo_datetimes.len() as u32))
         }),);
 
     //add marker and label
-    for ((x, y),z) in yahoo_datetimes.iter().zip(closes.iter()).zip(backtest.orders().iter()) {
-        chart.draw_series(PointSeries::of_element(
-            vec![(*x, *y)],
-            5, // Circle marker size
-            &RED, // Red color
-            &|c, s, st| {
-                // Customize the circle marker appearance if needed
-                return EmptyElement::at(c) + Circle::new((0, 10), s, st.filled()) +
-                    Text::new(format!("{:?}", z), (0, 15), ("sans-serif", 15)) +
-                    TriangleMarker::new((-4, -4), 4, RED);
-            },
-        ))?;
+    if config.display_marker_label==true {
+        for ((x, y), z) in yahoo_datetimes.iter().zip(closes.iter()).zip(backtest.orders().iter()) {
+            chart.draw_series(PointSeries::of_element(
+                vec![(*x, *y)],
+                5, // Circle marker size
+                &RED, // Red color
+                &|c, s, st| {
+                    // Customize the circle marker appearance if needed
+                    return EmptyElement::at(c) + Circle::new((0, 10), s, st.filled()) +
+                        Text::new(format!("{:?}", z), (0, 15), ("sans-serif", 15)) +
+                        TriangleMarker::new((-4, -4), 4, RED);
+                },
+            ))?;
+        }
     }
 
     chart.configure_series_labels()
@@ -211,13 +213,15 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 pub struct Plot_Config{
     display_indic: bool,
     display_networth: bool,
+    display_marker_label: bool,
 }
 
 impl Default for Plot_Config{
     fn default() -> Self {
         Self{
-            display_indic:false,
+            display_indic:true,
             display_networth:false,
+            display_marker_label:false,
         }
     }
 }
