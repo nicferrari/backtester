@@ -118,21 +118,23 @@ impl Data{
         return self.close[pos];
     }
     ///give return on given period (accepts xd(-ays) or xw(-eeks) where x is an integer)
-    pub fn ret_from_period(&self,term2:&[&str])->Vec<f64>{
+    pub fn ret_from_period(&self,term:&[&str])->Vec<f64>{
         let mut ret = Vec::new();
         let last_date = self.datetime.last().unwrap();
-        let term = term2.first().unwrap();
-        let sought_date = match term.chars().last(){
-            Some('w')=>last_date.checked_sub_signed(Duration::weeks(term[..term.len()-1].parse().unwrap())).unwrap(),
-            Some('d')=>last_date.checked_sub_signed(Duration::days(term[..term.len()-1].parse().unwrap())).unwrap(),
-            Some(c)=>*last_date,
-            None=>*last_date,
+        //let term = term2.first().unwrap();
+        for i in term.iter() {
+            let sought_date = match i.chars().last() {
+                Some('w') => last_date.checked_sub_signed(Duration::weeks(i[..i.len() - 1].parse().unwrap())).unwrap(),
+                Some('d') => last_date.checked_sub_signed(Duration::days(i[..i.len() - 1].parse().unwrap())).unwrap(),
+                Some(c) => *last_date,
+                None => *last_date,
+            };
+            //println!("looking for {:}", sought_date.date_naive());
+            let pos = self.datetime.iter().position(|&x| x.date_naive() >= sought_date.date_naive()).unwrap();
+            //println!("date found was {:} - {:}", self.datetime[pos].date_naive(), self.close[pos]);
+            //println!("final valuation date {:} - {:}", self.datetime.last().unwrap(), self.close().last().unwrap());
+            ret.push((self.close.last().unwrap() / self.close[pos] - 1.) * 100.);
         };
-        println!("looking for {:}",sought_date.date_naive());
-        let pos = self.datetime.iter().position(|&x|x.date_naive()>=sought_date.date_naive()).unwrap();
-        println!("date found was {:} - {:}",self.datetime[pos].date_naive(),self.close[pos]);
-        println!("final valuation date {:} - {:}",self.datetime.last().unwrap(),self.close().last().unwrap());
-        ret.push((self.close.last().unwrap()/self.close[pos]-1.)*100.);
         return ret;
     }
     ///helper function to show data (datetime - close)
