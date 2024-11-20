@@ -1,7 +1,12 @@
+use std::ops::Index;
 use plotters::prelude::*;
 use chrono::{DateTime, FixedOffset};
 use crate::backtester::Backtest;
 use plotters::coord::types::RangedCoordf64;
+use plotters::element::ComposedElement;
+use plotters::style::full_palette::{GREEN_900, GREY, ORANGE};
+use crate::orders;
+use crate::orders::Order;
 
 //pub fn plot(quotes:&Data, position:&Vec<f64>, account:&Vec<f64>, orders:&Vec<Order>) ->Result<(), Box<dyn std::error::Error>>{
 pub fn plot_old(backtest:Backtest) ->Result<(), Box<dyn std::error::Error>>{
@@ -139,9 +144,12 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 
     if config.display_indic ==true {
         let Some(indicator) = backtest.strategy().indicator() else { todo!() };
-        for nr in indicator.iter() {
+        let colors = vec![CYAN,ORANGE];
+        let colors_iter = colors.iter().cycle();
+        for (nr,color) in indicator.iter().zip(colors_iter) {
+            let color_clone = color.clone();
             let Some(index) = nr.iter().position(|&x| x != -1.0) else { todo!() };
-            let _ = chart.draw_series(LineSeries::new((index..closes.len()).map(|i| (yahoo_datetimes[i], nr[i])), &BLUE)).unwrap().label("indicator");
+            let _ = chart.draw_series(LineSeries::new((index..closes.len()).map(|i| (yahoo_datetimes[i], nr[i])), color_clone)).unwrap().label("indic").legend(move |(x, y)| Circle::new((x, y), 5, color_clone.filled()));
         }
     }
 
@@ -169,10 +177,15 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
                 5, // Circle marker size
                 &RED, // Red color
                 &|c, s, st| {
-                    // Customize the circle marker appearance if needed
-                    return EmptyElement::at(c) + Circle::new((0, 10), s, st.filled()) +
-                        Text::new(format!("{:?}", z), (0, 15), ("sans-serif", 15)) +
-                        TriangleMarker::new((-4, -4), 4, RED);
+                    return EmptyElement::at(c) + //Circle::new((0, 10), s, st.filled()) +
+                        //Text::new(format!("{:?}", z), (0, 15), ("sans-serif", 15)) +
+                        //TriangleMarker::new((-4, -4), 4, RED);
+                        //if *z==orders::Order::BUY {Polygon::new(&[(0, 0), (6, 0), (3, -6)], GREEN)} else {Polygon::new(&[(0, 0), (6, 0), (3, 6)], RED)};
+                        match z{
+                            orders::Order::BUY=>Polygon::new(&[(0, 0), (6, 0), (3, -6)], GREEN_900),
+                            orders::Order::SHORTSELL=>Polygon::new(&[(0, 0), (6, 0), (3, 6)], RED),
+                            orders::Order::NULL=>Polygon::new(&[(0,0),(6,0)], GREY),
+                        };
                 },
             ))?;
         }
@@ -180,7 +193,7 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 
     chart.configure_series_labels()
         .border_style(&BLACK)
-        .background_style(&WHITE.mix(0.8))
+        .background_style(&YELLOW.mix(0.8))
         .draw()
         .unwrap();
 
@@ -211,9 +224,9 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 }
 
 pub struct Plot_Config{
-    display_indic: bool,
-    display_networth: bool,
-    display_marker_label: bool,
+    pub display_indic: bool,
+    pub display_networth: bool,
+    pub display_marker_label: bool,
 }
 
 impl Default for Plot_Config{

@@ -10,7 +10,8 @@ pub fn main() -> Result<(),Box<dyn Error>> {
     let strategy = sma_cross(data.clone(), 5, 15);
     let mut backtest = Backtest::new(data.clone(), strategy, 100000.);
     backtest.calculate();
-    let plot_config = Plot_Config::default();
+    let mut plot_config = Plot_Config::default();
+    plot_config.display_marker_label=true;
     plot(backtest.clone(),plot_config)?;
     Ok(())
 }
