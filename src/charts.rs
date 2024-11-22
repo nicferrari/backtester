@@ -171,7 +171,9 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 
     //add marker and label
     if config.display_marker_label==true {
+        let mut prev_order = orders::Order::NULL;
         for ((x, y), z) in yahoo_datetimes.iter().zip(closes.iter()).zip(backtest.orders().iter()) {
+            if *z != prev_order{
             chart.draw_series(PointSeries::of_element(
                 vec![(*x, *y)],
                 5, // Circle marker size
@@ -188,6 +190,8 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
                         };
                 },
             ))?;
+            prev_order=*z;
+            };
         }
     }
 
@@ -211,11 +215,18 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 
         chart_low.configure_mesh().x_label_formatter(&|dt| dt.format("%Y-%m-%d").to_string()).draw().unwrap();
 
-        let _ = chart_low.draw_series(LineSeries::new((0..networth.len()).map(|i| (yahoo_datetimes[i], networth[i])), &BLUE)).unwrap().label("networth");
+        chart_low.draw_series(LineSeries::new((0..networth.len()).map(|i| (yahoo_datetimes[i], networth[i])), &BLUE)).unwrap().label("networth");
+
+        // area fill (GREEN, RED)
+        let gains: Vec<f64> = networth.clone().iter().map(|value|if *value > networth[0] { *value } else { networth[0] }).collect();
+        let losses: Vec<f64> = networth.clone().iter().map(|value|if *value < networth[0] { *value } else { networth[0] }).collect();
+
+        chart_low.draw_series(AreaSeries::new((0..yahoo_datetimes.len()).map(|i|(yahoo_datetimes[i], gains[i])),networth[0], &GREEN.mix(0.2))).unwrap();
+        chart_low.draw_series(AreaSeries::new((0..yahoo_datetimes.len()).map(|i|(yahoo_datetimes[i], losses[i])),networth[0], &RED.mix(0.2))).unwrap();
 
         chart_low.configure_series_labels()
             .border_style(&BLACK)
-            .background_style(&WHITE.mix(0.8))
+            .background_style(&YELLOW.mix(0.8))
             .draw()
             .unwrap();
     }

@@ -12,6 +12,7 @@ pub fn main() -> Result<(),Box<dyn Error>> {
     backtest.calculate();
     let mut plot_config = Plot_Config::default();
     plot_config.display_marker_label=true;
+    plot_config.display_networth = true;
     plot(backtest.clone(),plot_config)?;
     Ok(())
 }
