@@ -13,6 +13,22 @@ pub struct Backtest{
     strategy:Strategy,
     position:Vec<f64>,
     account:Vec<f64>,
+    commission: Commission,
+}
+
+#[derive(Clone)]
+pub struct Commission{
+    rate:f64,
+    floor:f64,
+}
+
+impl Default for Commission{
+    fn default() -> Self {
+        Self{rate:0.1,
+        floor:0.,
+        }
+    }
+
 }
 
 #[derive(PartialEq)]
@@ -28,12 +44,15 @@ impl Backtest{
         let length = quotes.timestamps().len();
         let position = vec![0.;length];
         let account = vec![account;length];
-        Backtest{
+        let mut _backtest = Backtest{
             quotes:quotes,
             strategy:strategy,
             position:position,
             account:account,
-        }
+            commission:Commission::default(),
+        };
+        _backtest.calculate();
+        _backtest
     }
     pub fn quotes(&self)->&Data{return &self.quotes}
     pub fn orders(&self)->Vec<Order>{return self.strategy.choices()}
@@ -76,7 +95,7 @@ impl Backtest{
         }
     }
     ///function which does the actual backtest and returns a vector of (signed) positions and account values
-    pub fn calculate(&mut self){
+    fn calculate(&mut self){
         let mut stance = Stance::NULL;
         let mut previous_position = 0.;
         let mut previous_account = 100000.;
@@ -86,8 +105,8 @@ impl Backtest{
                     if stance!=Stance::LONG{
                         let networth = previous_account + previous_position * self.quotes.open()[i];//to be changed to open
                         //self.position[i] = ((self.account[i]/self.quotes.close()[i]) as i64) as f64;
-                        self.position[i] = ((networth/self.quotes.open()[i]) as i64) as f64;
-                        self.account[i] = networth-self.position[i]*self.quotes.open()[i];
+                        self.position[i] = ((networth/(self.quotes.open()[i]*(1.+self.commission.rate))) as i64) as f64;
+                        self.account[i] = networth-self.position[i]*(self.quotes.open()[i]*(1.+self.commission.rate));
                         stance = Stance::LONG;
                     } else {
                         self.position[i] = previous_position;

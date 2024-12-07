@@ -27,9 +27,9 @@ pub fn main()->Result<(),Box<dyn Error>>{
     let mut sma_cross_backt = Backtest::new(quotes.clone(),sma_cross,100000.);
     let mut sma_backt = Backtest::new(quotes.clone(),sma,100000.);
     let mut rsi_backt = Backtest::new(quotes.clone(),rsi_strategy,100000.);
-    sma_cross_backt.calculate();
-    sma_backt.calculate();
-    rsi_backt.calculate();
+//    sma_cross_backt.calculate();
+//    sma_backt.calculate();
+//    rsi_backt.calculate();
     let mut cmp_backt=Vec::new();
     cmp_backt.push(sma_backt);
     cmp_backt.push(sma_cross_backt);

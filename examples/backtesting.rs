@@ -1,13 +1,13 @@
 use std::error::Error;
 use backtester::backtester::Backtest;
-use backtester::charts::plot;
+use backtester::charts::{plot, Plot_Config};
 use backtester::datas::Data;
 use backtester::strategies::{sma_cross};
 use backtester::report::report;
 
 fn main()->Result<(),Box<dyn Error>>{
-    //let quotes = Data::new_from_yahoo("AAPL".to_string())?;
-    let quotes = Data::load("GOOG.csv","GOOG")?;
+    let quotes = Data::new_from_yahoo("AAPL","1d","6mo")?;
+    //let quotes = Data::load("GOOG.csv","GOOG")?;
     /*let bnh_strategy = buy_n_hold(quotes.clone());
     let mut bnh_tester = Backtest::new(quotes.clone(),bnh_strategy.clone(),100000f64)?;
     //print_report(quotes,strategy);
@@ -29,10 +29,10 @@ fn main()->Result<(),Box<dyn Error>>{
     let sma_cross_strategy = sma_cross(quotes.clone(), 10,20);
     //let sma_cross_strategy = simple_sma(quotes.clone(),5);
     let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64);
-    sma_cross_tester.calculate();   //da togliere perchè superfluo va chiamata all'inizializzazione in automatico
+    //sma_cross_tester.calculate();   //da togliere perchè superfluo va chiamata all'inizializzazione in automatico
     sma_cross_tester.log(&["date","open","high","low","close","position","account","indicator"]);
     //_ = plot(&quotes, &sma_cross_tester.position(), &sma_cross_tester.account(), &sma_cross_strategy.choices());
-    plot(sma_cross_tester.clone())?;
+    plot(sma_cross_tester.clone(), Plot_Config::default())?;
     sma_cross_tester.to_csv("sma_cross.csv")?;//.expect("couldn't save backtest to file");
     report(&sma_cross_tester);
     Ok(())
