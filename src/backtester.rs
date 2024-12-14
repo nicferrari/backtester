@@ -155,6 +155,9 @@ impl Backtest{
         let position_t:Vec<Vec<String>> = self.position.iter().map(|e|vec![e.to_string()]).collect();
         let account_t:Vec<Vec<String>> = self.account.iter().map(|e|vec![e.to_string()]).collect();
 
+        let mktvalue_t:Vec<Vec<String>> = self.position.iter().zip(self.quotes().close().iter()).map(|(a,b)|a*b).collect::<Vec<_>>().iter().map(|e|vec![e.to_string()]).collect();
+        let networth_t:Vec<Vec<String>> = (self.position.iter().zip(self.quotes().close().iter())).zip(self.account.iter()).map(|((a,b),c)|a*b+c).collect::<Vec<_>>().iter().map(|e|vec![e.to_string()]).collect();
+
 //        let indicator1_t:Vec<Vec<String>> = self.strategy.indicator().iter().next().unwrap().iter().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
 //        let indicator2_t:Vec<Vec<String>> = self.strategy.indicator().iter().skip(1).next().unwrap().iter().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
 //the below work but indicator2 is Option, so could break if only one, besides also need to manage n-case
@@ -179,17 +182,17 @@ impl Backtest{
             wrt.serialize((col1,col2,col3,col4,col5))?;
         }*/
         if let Some(ind2_t) = indicator2_t{
-            wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","INDIC2","ACCOUNT","POSITION"))?;
-            for (((((((col1,col2),col3),col4),col5),col6),col7),col8) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
-                .zip(indicator1_t.iter()).zip(ind2_t.iter()).zip(account_t.iter()).zip(position_t.iter()){
-                wrt.serialize((col1,col2,col3,col4,col5,col6,col7,col8))?;
+            wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","INDIC2","ACCOUNT","POSITION","MKTVALUE","NETWORTH"))?;
+            for (((((((((col1,col2),col3),col4),col5),col6),col7),col8),col9),col10) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
+                .zip(indicator1_t.iter()).zip(ind2_t.iter()).zip(account_t.iter()).zip(position_t.iter()).zip(mktvalue_t.iter()).zip(networth_t.iter()){
+                wrt.serialize((col1,col2,col3,col4,col5,col6,col7,col8,col9,col10))?;
             } }
         else
         {
-            wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","ACCOUNT","POSITION"))?;
-            for ((((((col1,col2),col3),col4),col5),col6),col7) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
-                .zip(indicator1_t.iter()).zip(account_t.iter()).zip(position_t.iter()){
-                wrt.serialize((col1,col2,col3,col4,col5,col6,col7))?;
+            wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","ACCOUNT","POSITION","MKTVALUE","NETWORTH"))?;
+            for ((((((((col1,col2),col3),col4),col5),col6),col7),col8),col9) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
+                .zip(indicator1_t.iter()).zip(account_t.iter()).zip(position_t.iter()).zip(mktvalue_t.iter()).zip(networth_t.iter()){
+                wrt.serialize((col1,col2,col3,col4,col5,col6,col7,col8,col9))?;
             }
         }
         wrt.flush()?;

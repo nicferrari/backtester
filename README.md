@@ -75,6 +75,7 @@ sma_cross_tester.calculate();
 - check vs backtrader
 - when order stays for different period, position should be incremented,
 or otherwise implement backtrader-style single orders
+- adding stop loss, trailing stop and take profit orders
 ## Dependencies
 ```rust
 [dependencies]
