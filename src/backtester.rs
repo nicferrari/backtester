@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use csv::Writer;
 use std::error::Error;
+use std::io::Read;
 use crate::strategies::Strategy;
 use crate::{orders};
 use crate::datas::Data;
@@ -103,7 +104,7 @@ impl Backtest{
             match self.strategy.choices()[i-1]{
                 orders::Order::BUY=>{
                     if stance!=Stance::LONG{
-                        let networth = previous_account + previous_position * self.quotes.open()[i];//to be changed to open
+                        let networth = previous_account + previous_position * self.quotes.open()[i]*(1.-previous_position.signum()*self.commission.rate);//to be changed to open
                         //self.position[i] = ((self.account[i]/self.quotes.close()[i]) as i64) as f64;
                         self.position[i] = ((networth/(self.quotes.open()[i]*(1.+self.commission.rate))) as i64) as f64;
                         self.account[i] = networth-self.position[i]*(self.quotes.open()[i]*(1.+self.commission.rate));
@@ -158,44 +159,63 @@ impl Backtest{
         let mktvalue_t:Vec<Vec<String>> = self.position.iter().zip(self.quotes().close().iter()).map(|(a,b)|a*b).collect::<Vec<_>>().iter().map(|e|vec![e.to_string()]).collect();
         let networth_t:Vec<Vec<String>> = (self.position.iter().zip(self.quotes().close().iter())).zip(self.account.iter()).map(|((a,b),c)|a*b+c).collect::<Vec<_>>().iter().map(|e|vec![e.to_string()]).collect();
 
-//        let indicator1_t:Vec<Vec<String>> = self.strategy.indicator().iter().next().unwrap().iter().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
-//        let indicator2_t:Vec<Vec<String>> = self.strategy.indicator().iter().skip(1).next().unwrap().iter().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
-//the below work but indicator2 is Option, so could break if only one, besides also need to manage n-case
-        let indicator1_t:Vec<Vec<String>> = self.strategy.indicator().iter().flatten().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
-//        let indicator2_t:Vec<Vec<String>> = self.strategy.indicator().iter().flatten().skip(1).next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
+//        let flows_t:Vec<String> = std::iter::once(None).chain(self.position.windows(2).map(|window|Some(window[1]-window[0]))).map(|e|match e { Some(value)=>value.to_string(),
+//        None=>"None".to_string()}).collect();
+/*        let flows_t:Vec<String> = std::iter::once(None).chain(self.position.windows(2).zip(self.quotes.open().windows(2))
+            .map(|(window,window1)|Some(-(window[1]-window[0])*window1[1]))).map(|e|match e { Some(value)=>value.to_string(),
+            None=>"None".to_string()}).collect();
 
-        let indicator2_t:Option<Vec<Vec<String>>>;
-        match self.strategy.indicator(){
-            Some(innervec)=>{
-                if innervec.len() >=2{
-                    indicator2_t = Some(self.strategy.indicator().iter().flatten().skip(1).next().unwrap().iter().map(|e|vec![e.to_string()]).collect());
-                } else {indicator2_t = None}
-            }
-            None=>{
-                indicator2_t = None;
+        let commission_t:Vec<String> = std::iter::once(None).chain(flows_t.windows(2).zip(networth_t.windows(2))
+                                                          .map(|(window,window1)| window[1].parse::<f64>().unwrap())).map(|e|match e {
+            Some(value)=>value.to_string(), None=>"None".to_string()}).collect();
+*/
+        let flows:Vec<f64> = std::iter::once(None).chain(self.position.windows(2).zip(self.quotes.open().windows(2))
+                    .map(|(window,window1)|Some(-(window[1]-window[0])*window1[1]))).map(|e|match e{
+            Some(value)=>value,None=>0.}).collect();
+        //let flows_t:Vec<String> = flows.iter().map(|e|match e {Some(value)=>value.to_string(),None=>"None".to_string()}).collect();
+        let flows_t:Vec<String> = flows.iter().map(|e|e.to_string()).collect();
+
+        let commission_t:Vec<String> = std::iter::once(None).chain(self.account.windows(2).zip(flows.windows(2)).map(
+            |(window,window1)|Some(window[0]-window[1]+window1[1]))).map(|e|match e{Some(value)=>(-1.*value).to_string(),None=>0.to_string()}).collect();
+
+        //        let indicator1_t:Vec<Vec<String>> = self.strategy.indicator().iter().next().unwrap().iter().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
+        //        let indicator2_t:Vec<Vec<String>> = self.strategy.indicator().iter().skip(1).next().unwrap().iter().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
+        //the below work but indicator2 is Option, so could break if only one, besides also need to manage n-case
+                let indicator1_t:Vec<Vec<String>> = self.strategy.indicator().iter().flatten().next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
+        //        let indicator2_t:Vec<Vec<String>> = self.strategy.indicator().iter().flatten().skip(1).next().unwrap().iter().map(|e|vec![e.to_string()]).collect();
+
+                let indicator2_t:Option<Vec<Vec<String>>>;
+                match self.strategy.indicator(){
+                    Some(innervec)=>{
+                        if innervec.len() >=2{
+                            indicator2_t = Some(self.strategy.indicator().iter().flatten().skip(1).next().unwrap().iter().map(|e|vec![e.to_string()]).collect());
+                        } else {indicator2_t = None}
+                    }
+                    None=>{
+                        indicator2_t = None;
+                    }
+                }
+
+        /*
+                wrt.serialize(("DATE","CLOSE","CHOICES","INDIC1","INDIC2"))?;
+                for ((((col1,col2),col3),col4),col5) in timestamps_t.iter().zip(close_t.iter()).zip(choices_t.iter()).zip(indicator1_t.iter()).zip(Some(indicator2_t).iter()){
+                    wrt.serialize((col1,col2,col3,col4,col5))?;
+                }*/
+                if let Some(ind2_t) = indicator2_t{
+                    wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","INDIC2","ACCOUNT","POSITION","MKTVALUE","NETWORTH","FLOW","COMMISSION"))?;
+                    for (((((((((((col1,col2),col3),col4),col5),col6),col7),col8),col9),col10),col11),col12) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
+                        .zip(indicator1_t.iter()).zip(ind2_t.iter()).zip(account_t.iter()).zip(position_t.iter()).zip(mktvalue_t.iter()).zip(networth_t.iter()).zip(flows_t.iter()).zip(commission_t.iter()){
+                        wrt.serialize((col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11,col12))?;
+                    } }
+                else
+                {
+                    wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","ACCOUNT","POSITION","MKTVALUE","NETWORTH","FLOW","COMMISSION"))?;
+                    for ((((((((((col1,col2),col3),col4),col5),col6),col7),col8),col9),col10),col11) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
+                        .zip(indicator1_t.iter()).zip(account_t.iter()).zip(position_t.iter()).zip(mktvalue_t.iter()).zip(networth_t.iter()).zip(flows_t.iter()).zip(commission_t.iter()){
+                        wrt.serialize((col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11))?;
+                    }
+                }
+                wrt.flush()?;
+                Ok(())
             }
         }
-
-/*
-        wrt.serialize(("DATE","CLOSE","CHOICES","INDIC1","INDIC2"))?;
-        for ((((col1,col2),col3),col4),col5) in timestamps_t.iter().zip(close_t.iter()).zip(choices_t.iter()).zip(indicator1_t.iter()).zip(Some(indicator2_t).iter()){
-            wrt.serialize((col1,col2,col3,col4,col5))?;
-        }*/
-        if let Some(ind2_t) = indicator2_t{
-            wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","INDIC2","ACCOUNT","POSITION","MKTVALUE","NETWORTH"))?;
-            for (((((((((col1,col2),col3),col4),col5),col6),col7),col8),col9),col10) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
-                .zip(indicator1_t.iter()).zip(ind2_t.iter()).zip(account_t.iter()).zip(position_t.iter()).zip(mktvalue_t.iter()).zip(networth_t.iter()){
-                wrt.serialize((col1,col2,col3,col4,col5,col6,col7,col8,col9,col10))?;
-            } }
-        else
-        {
-            wrt.serialize(("DATE","OPEN","CLOSE","CHOICES","INDIC1","ACCOUNT","POSITION","MKTVALUE","NETWORTH"))?;
-            for ((((((((col1,col2),col3),col4),col5),col6),col7),col8),col9) in timestamps_t.iter().zip(open_t.iter()).zip(close_t.iter()).zip(choices_t.iter())
-                .zip(indicator1_t.iter()).zip(account_t.iter()).zip(position_t.iter()).zip(mktvalue_t.iter()).zip(networth_t.iter()){
-                wrt.serialize((col1,col2,col3,col4,col5,col6,col7,col8,col9))?;
-            }
-        }
-        wrt.flush()?;
-        Ok(())
-    }
-}

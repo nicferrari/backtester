@@ -6,7 +6,7 @@ use backtester::strategies::{sma_cross};
 use backtester::report::report;
 
 fn main()->Result<(),Box<dyn Error>>{
-    let quotes = Data::new_from_yahoo("AAPL","1d","6mo")?;
+    let quotes = Data::new_from_yahoo("CSSPX.MI","1d","6mo")?;
     //let quotes = Data::load("GOOG.csv","GOOG")?;
     /*let bnh_strategy = buy_n_hold(quotes.clone());
     let mut bnh_tester = Backtest::new(quotes.clone(),bnh_strategy.clone(),100000f64)?;
