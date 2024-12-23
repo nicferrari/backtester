@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use csv::Writer;
 use std::error::Error;
-use std::io::Read;
 use crate::strategies::Strategy;
 use crate::{orders};
 use crate::datas::Data;
@@ -20,13 +19,13 @@ pub struct Backtest{
 #[derive(Clone)]
 pub struct Commission{
     rate:f64,
-    floor:f64,
+    floor:f64,//not implemented
 }
 
 impl Default for Commission{
     fn default() -> Self {
         Self{rate:0.1,
-        floor:0.,
+        floor:0.,//not implemented
         }
     }
 
@@ -104,7 +103,7 @@ impl Backtest{
             match self.strategy.choices()[i-1]{
                 orders::Order::BUY=>{
                     if stance!=Stance::LONG{
-                        let networth = previous_account + previous_position * self.quotes.open()[i]*(1.-previous_position.signum()*self.commission.rate);//to be changed to open
+                        let networth = previous_account + previous_position * self.quotes.open()[i]*(1.-previous_position.signum()*self.commission.rate);
                         //self.position[i] = ((self.account[i]/self.quotes.close()[i]) as i64) as f64;
                         self.position[i] = ((networth/(self.quotes.open()[i]*(1.+self.commission.rate))) as i64) as f64;
                         self.account[i] = networth-self.position[i]*(self.quotes.open()[i]*(1.+self.commission.rate));
@@ -116,10 +115,10 @@ impl Backtest{
                 }
                 orders::Order::SHORTSELL=>{
                     if stance!=Stance::SHORT{
-                        let networth = previous_account + previous_position * self.quotes.open()[i];//to be changed to open
+                        let networth = previous_account + previous_position * self.quotes.open()[i]*(1.-previous_position.signum()*self.commission.rate);
                         //self.position[i] = -((self.account[i]/self.quotes.close()[i]) as i64) as f64;
-                        self.position[i] = -((networth/self.quotes.open()[i]) as i64) as f64;
-                        self.account[i] = networth-self.position[i]*self.quotes.open()[i];
+                        self.position[i] = -((networth/self.quotes.open()[i]*(1.-self.commission.rate)) as i64) as f64;
+                        self.account[i] = networth-self.position[i]*self.quotes.open()[i]*(1.-self.commission.rate);
                         stance = Stance::SHORT;
                     } else {
                         self.position[i] = previous_position;
@@ -128,7 +127,7 @@ impl Backtest{
                 }
                 orders::Order::NULL=>{
                     if stance!=Stance::NULL{
-                        let networth = previous_account + previous_position * self.quotes.open()[i];//to be changed to open
+                        let networth = previous_account + previous_position * self.quotes.open()[i]*(1.-previous_position.signum()*self.commission.rate);
                         self.position[i]=0.;
                         self.account[i]=networth;
                         stance = Stance::NULL;
@@ -146,7 +145,6 @@ impl Backtest{
     ///Indicator can only be 1 or 2 at the moment
     pub fn to_csv(&self, filename:&str)->Result<(), Box<dyn Error>>{
         let mut wrt = Writer::from_path(filename)?;
-        //transpose data for ease of readability in CSV
         //the part below can be macro-ed
         let timestamps_t:Vec<Vec<String>> = self.quotes.timestamps().iter().map(|e|vec![e.to_string()[0..10].to_string()]).collect();
         let open_t:Vec<Vec<String>> = self.quotes.open().iter().map(|e|vec![e.to_string()]).collect();

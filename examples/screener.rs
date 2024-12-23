@@ -1,6 +1,6 @@
 use std::error::Error;
 use backtester::datas::Data;
-use backtester::screeners::screener_returns;
+use backtester::screeners::ScreenerReturns;
 use chrono::{DateTime};
 
 fn main() ->Result<(),Box<dyn Error>> {
@@ -13,7 +13,7 @@ fn main() ->Result<(),Box<dyn Error>> {
     let rets = quotes.ret_from_period(&terms);
     terms.iter().zip(rets.iter()).for_each(|(term,val)|println!("return over {} is {:.2}% ",term,val));
     let tickers = &["AAPL","NVDA","FSLR","PLTR","^IXIC"];
-    let scr = screener_returns::new(tickers,&terms);
+    let scr = ScreenerReturns::new(tickers, &terms);
     println!("--------------------------");
     scr.report();
     Ok(())

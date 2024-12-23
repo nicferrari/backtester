@@ -2,12 +2,9 @@ use std::env;
 use chrono::{DateTime, Duration, FixedOffset, TimeZone};
 use csv::{Writer};
 use yahoo_finance_api as yahoo;
-use yahoo_finance_api::{Quote, time};
+use yahoo_finance_api::{Quote};
 use tokio_test;
-//use crate::errors::Result;
 use std::error::Error;
-use yahoo_finance_api::time::macros::datetime;
-use std::str::FromStr;
 
 fn download_data(ticker:&str, interval:&str, range:&str) ->Result<Vec<Quote>,Box<dyn Error>>{
     let provider = yahoo::YahooConnector::new().unwrap();

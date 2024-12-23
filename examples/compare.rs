@@ -3,7 +3,7 @@ use std::error::Error;
 use backtester::backtester::Backtest;
 use backtester::datas::Data;
 use backtester::strategies::{rsi_strategy, simple_sma, sma_cross};
-use backtester::report::compare;
+use backtester::report::{compare, uniq_report};
 use std::env::{args};
 
 pub fn main()->Result<(),Box<dyn Error>>{
@@ -24,17 +24,15 @@ pub fn main()->Result<(),Box<dyn Error>>{
     let sma_cross = sma_cross(quotes.clone(),10,20);
     let sma = simple_sma(quotes.clone(),10);
     let rsi_strategy = rsi_strategy(quotes.clone(),15);
-    let mut sma_cross_backt = Backtest::new(quotes.clone(),sma_cross,100000.);
-    let mut sma_backt = Backtest::new(quotes.clone(),sma,100000.);
-    let mut rsi_backt = Backtest::new(quotes.clone(),rsi_strategy,100000.);
-//    sma_cross_backt.calculate();
-//    sma_backt.calculate();
-//    rsi_backt.calculate();
+    let sma_cross_backt = Backtest::new(quotes.clone(),sma_cross,100000.);
+    let sma_backt = Backtest::new(quotes.clone(),sma,100000.);
+    let rsi_backt = Backtest::new(quotes.clone(),rsi_strategy,100000.);
     let mut cmp_backt=Vec::new();
     cmp_backt.push(sma_backt);
     cmp_backt.push(sma_cross_backt);
     cmp_backt.push(rsi_backt.clone());
-    compare(&cmp_backt);
-    rsi_backt.to_csv("rsi_backtest.csv");
+    //compare(&cmp_backt);
+    uniq_report(cmp_backt);
+    rsi_backt.to_csv("rsi_backtest.csv")?;
     Ok(())
 }

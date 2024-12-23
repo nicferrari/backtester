@@ -1,13 +1,13 @@
 use datas::Data;
 use crate::datas;
 
-pub struct screener_returns{
+pub struct ScreenerReturns {
     tickers:Vec<String>,
     terms:Vec<String>,
     quotes:Vec<Data>,
 }
 
-impl screener_returns{
+impl ScreenerReturns {
     pub fn new(tickers:&[&str], terms:&[&str])->Self{
         let mut quotes = Vec::new();
         for i in tickers{
@@ -16,7 +16,7 @@ impl screener_returns{
         }
         let tickers = tickers.iter().map(|s|s.to_string()).collect();
         let terms = terms.iter().map(|s|s.to_string()).collect();
-        screener_returns{
+        ScreenerReturns {
             tickers,
             terms,
             quotes,

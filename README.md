@@ -18,7 +18,7 @@ use backtester::backtester::Backtest;
 use backtester::datas::Data;
 use backtester::strategies::{sma_cross};
 ```
-- Define an instance of the Data class. Market data can be retrieve either through yahoo-finance or read from
+- Define an instance of the Data class. Market data can be retrieved either through yahoo-finance or read from
 a CSV file (OHLC format, Volume is not uploaded)
 ```rust
 let quotes = Data::load("GOOG.csv","GOOG")?;
@@ -38,11 +38,7 @@ let sma_cross_strategy = sma_cross(quotes.clone(), 10,20);
 ```rust
 let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64);
 ```
-- Calculate it
-```rust
-sma_cross_tester.calculate();
-```
-- After you calculate:
+- Now:
   - you can read a report of the backtest
     ```rust
     report(&sma_cross_tester);
@@ -55,6 +51,7 @@ sma_cross_tester.calculate();
     ```rust
     plot(sma_cross_tester.clone())?;
     ``` 
+  !['plot']("https://github.com/nicferrari/backtester/blob/master/examples/images/plot.png")
   - you can CSV it
     ```rust
     sma_cross_tester.to_csv()?;
@@ -62,7 +59,7 @@ sma_cross_tester.calculate();
   - you can also compare multiple strategies at once (work in progress)
 
 ## Further enhancements (to be made)
-- include user-defined commissions
+- include more complex user-defined commissions (e.g. floors)
 - report of the backtesting with flexible user-decided fields (e.g. maximum drawdown, #trades, ...)
     this can also be done after the calculate steps on the log data...
   https://github.com/kernc/backtesting.py as an example
@@ -70,12 +67,15 @@ sma_cross_tester.calculate();
 - (TBC) rework the strategy definition to use only a function, if possible
 - implement error checking and lifetime of a Backtest object (linked to quotes?)
 - (TBC) GUI with parsing user input
-- diffent types of orders (partial, stop loss, profit taking, ...)<BR>
+- diffent types of orders (partial, stop loss, trailing stops, profit taking, ...)<BR>
 <BR>
 - check vs backtrader
 - when order stays for different period, position should be incremented,
 or otherwise implement backtrader-style single orders
-- adding stop loss, trailing stop and take profit orders
+- charting vs buyhold or vs specific strategy
+- adding margins and leveraged trades
+- adding more technical indicators
+- adding to compare strategies report
 ## Dependencies
 ```rust
 [dependencies]

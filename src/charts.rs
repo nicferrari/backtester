@@ -1,12 +1,9 @@
-use std::ops::Index;
 use plotters::prelude::*;
 use chrono::{DateTime, FixedOffset};
 use crate::backtester::Backtest;
 use plotters::coord::types::RangedCoordf64;
-use plotters::element::ComposedElement;
 use plotters::style::full_palette::{GREEN_900, GREY, ORANGE};
 use crate::orders;
-use crate::orders::Order;
 
 //pub fn plot(quotes:&Data, position:&Vec<f64>, account:&Vec<f64>, orders:&Vec<Order>) ->Result<(), Box<dyn std::error::Error>>{
 pub fn plot_old(backtest:Backtest) ->Result<(), Box<dyn std::error::Error>>{
@@ -103,10 +100,9 @@ pub fn plot_old(backtest:Backtest) ->Result<(), Box<dyn std::error::Error>>{
     Ok(())
 }
 
-pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::error::Error>>{
-    ///function used to plot data, indicators and equity
-    /// modify Plot_Config to define different chart parameters or apply default
-    //let indic_b = indic.unwrap_or(true);
+///function used to plot data, indicators and equity
+/// modify Plot_Config to define different chart parameters or apply default
+pub fn plot(backtest:Backtest, config: PlotConfig) ->Result<(), Box<dyn std::error::Error>>{
     let yahoo_datetimes:Vec<DateTime<FixedOffset>> = backtest.quotes().timestamps();
     let opens:Vec<f64> = backtest.quotes().open();
     let highs:Vec<f64> = backtest.quotes().high();
@@ -166,7 +162,7 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
 
     let _ = chart.draw_series(
         x.iter().map(|x| {
-            CandleStick::new(x.date,x.value1, x.value2, x.value3, x.value4, GREEN.filled(), RED.filled(), (500/yahoo_datetimes.len() as u32))
+            CandleStick::new(x.date,x.value1, x.value2, x.value3, x.value4, GREEN.filled(), RED.filled(), 500/yahoo_datetimes.len() as u32)
         }),);
 
     //add marker and label
@@ -234,13 +230,13 @@ pub fn plot(backtest:Backtest, config:Plot_Config) ->Result<(), Box<dyn std::err
     Ok(())
 }
 
-pub struct Plot_Config{
+pub struct PlotConfig {
     pub display_indic: bool,
     pub display_networth: bool,
     pub display_marker_label: bool,
 }
 
-impl Default for Plot_Config{
+impl Default for PlotConfig {
     fn default() -> Self {
         Self{
             display_indic:true,
