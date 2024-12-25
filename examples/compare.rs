@@ -2,7 +2,7 @@ use std::env;
 use std::error::Error;
 use backtester::backtester::Backtest;
 use backtester::datas::Data;
-use backtester::strategies::{rsi_strategy, simple_sma, sma_cross};
+use backtester::strategies::{buy_n_hold, rsi_strategy, simple_sma, sma_cross};
 use backtester::report::{compare, uniq_report};
 use std::env::{args};
 
@@ -28,6 +28,8 @@ pub fn main()->Result<(),Box<dyn Error>>{
     let sma_backt = Backtest::new(quotes.clone(),sma,100000.);
     let rsi_backt = Backtest::new(quotes.clone(),rsi_strategy,100000.);
     let mut cmp_backt=Vec::new();
+    let buynhold = Backtest::new(quotes.clone(),buy_n_hold(quotes.clone()),100000.);
+    cmp_backt.push(buynhold);
     cmp_backt.push(sma_backt);
     cmp_backt.push(sma_cross_backt);
     cmp_backt.push(rsi_backt.clone());

@@ -24,7 +24,7 @@ pub struct Commission{
 
 impl Default for Commission{
     fn default() -> Self {
-        Self{rate:0.1,
+        Self{rate:0.,
         floor:0.,//not implemented
         }
     }

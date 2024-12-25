@@ -226,7 +226,7 @@ pub fn plot(backtest:Backtest, config: PlotConfig) ->Result<(), Box<dyn std::err
             .draw()
             .unwrap();
     }
-    print!("Chart saved as .../examples/images/plot.png");
+    println!("Chart saved as .../examples/images/plot.png");
     Ok(())
 }
 

@@ -26,17 +26,21 @@ impl ScreenerReturns {
     ///tickers and timeperiod are passed in the constructor screener_returns::new
     pub fn report(&self){
         let terms:Vec<&str> = self.terms.iter().map(|s|s.as_str()).collect();
-        print!("  ");
-        terms.iter().for_each(|t|print!("   {}  ",t));
+        //print!("  ");
+        //terms.iter().for_each(|t|print!("   {}  ",t));
+        print!("{}",format!("{:<width$}","Ticker",width=10));
+        terms.iter().for_each(|t|print!("{}",format!("{:>width$}",t,width=10)));
         println!();
-        println!("-------------");
+        //println!("-------------");
         for i in self.quotes.iter(){
-            print!("{}",i.ticker());
+            //print!("{}",i.ticker());
+            print!("{}",format!("{:<width$}",i.ticker(),width=10));
             let returns = i.ret_from_period(&terms);
             //returns.iter().zip(terms.iter()).for_each(|(r,t)|println!("return over {} is {:.2}%",t,r));
-            returns.iter().for_each(|r|print!(" {:.2}%  ",r));
+            //returns.iter().for_each(|r|print!(" {:.2}%  ",r));
+            returns.iter().for_each(|r|print!("{}",format!("{:>width$}",format!("{:.2}%",r),width=10)));
             println!();
-            println!("-------------");
+            //println!("-------------");
         }
     }
 }

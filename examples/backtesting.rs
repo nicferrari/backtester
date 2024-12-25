@@ -17,8 +17,8 @@ fn main()->Result<(),Box<dyn Error>>{
 
     sma_cross_tester.to_csv("sma_cross.csv")?;
 
-    report(&sma_cross_tester);
-    //uniq_report(sma_cross_tester);
+    //report(&sma_cross_tester);
+    uniq_report(sma_cross_tester);
 
     Ok(())
 }
