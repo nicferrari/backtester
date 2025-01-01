@@ -4,15 +4,15 @@ use crate::orders::Order;
 use crate::orders::Order::{BUY,SHORTSELL,NULL};
 use std::error::Error;
 use crate::ta::{Indicator,sma,rsi};
-///struct to hold vector of choices and indicators.
-/// there is no specific constructor.
-/// need to be created via dedicated user-defined functions which return a Strategy
+
+/// Struct to hold vector of choices and indicators.
+/// There is no specific constructor.
+/// Need to be created via a user-defined function which return a Strategy
 #[derive(Clone)]
 pub struct Strategy{
-    //name:String,
-    name:String,
-    choices:Vec<Order>,
-    indicator:Option<Vec<Vec<f64>>>,
+    pub name:String,
+    pub choices:Vec<Order>,
+    pub indicator:Option<Vec<Vec<f64>>>,
 }
 
 impl Strategy{
@@ -36,7 +36,6 @@ impl Strategy{
     }
     pub fn to_csv(&self, filename:&str)->Result<(),Box<dyn Error>>{
         let mut wrt = Writer::from_path(filename)?;
-        //wrt.write_record(self.choices().iter().map(|e|e.to_string()))?;
         let choices_transpose:Vec<Vec<String>>= self.choices.iter().map(|e|vec![e.clone().to_string().to_string()]).collect();
         wrt.serialize("choices")?;
         for col in choices_transpose.iter(){
@@ -45,8 +44,6 @@ impl Strategy{
         Ok(())
     }
 }
-
-// specific strategies should only implement function to define choices: but why not returning directly Strategy?
 
 pub fn buy_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();

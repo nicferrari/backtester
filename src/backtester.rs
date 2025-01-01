@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 use csv::Writer;
 use std::error::Error;
 use crate::strategies::Strategy;
@@ -60,7 +61,7 @@ impl Backtest{
     pub fn account(&self)->Vec<f64>{return self.account.clone();}
     pub fn strategy(&self)->Strategy{return self.strategy.clone();}
     ///function which display the requested log values of the calculations made period by period
-    /// available choices at the moment are: close, open, low, high, position, account, indicator(s, up to 2)
+    ///available choices at the moment are: close, open, low, high, position, account, indicator(s, up to 2)
     pub fn log(&self, list:&[&str]){
         let mut data_functions: HashMap<&str, fn(&Data)->Vec<f64>>=HashMap::new();
         data_functions.insert("close", Data::close);
@@ -214,6 +215,7 @@ impl Backtest{
                     }
                 }
                 wrt.flush()?;
+                println!("Backtesting saved as = {:?}",env::current_dir()?.into_os_string().into_string().unwrap()+"\\"+filename);
                 Ok(())
             }
         }

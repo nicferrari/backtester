@@ -3,14 +3,14 @@ use std::error::Error;
 use backtester::backtester::Backtest;
 use backtester::datas::Data;
 use backtester::strategies::{buy_n_hold, rsi_strategy, simple_sma, sma_cross};
-use backtester::report::{compare, uniq_report};
+use backtester::report::{report};
 use std::env::{args};
 
 pub fn main()->Result<(),Box<dyn Error>>{
+    //example to compare different strategies
     //call with optional --filename="xxx.csv"
     //fallback to "GOOGLE.csv" which should be in directory
     let args:Vec<String> = args().collect();
-//    let fallback_file = "C:\\Users\\nicfe\\RustroverProjects\\backtester\\target\\debug\\examples\\GOOGLE.csv";
     let fallback_file = "GOOGLE.csv";
     let mut filename = fallback_file;
     for arg in &args{
@@ -19,7 +19,7 @@ pub fn main()->Result<(),Box<dyn Error>>{
         }
     }
     let path = env::current_dir()?;
-    println!("Trying to load filename = {:?}",path.into_os_string().into_string().unwrap()+"\\"+filename);
+    println!("Loading filename = {:?}",path.into_os_string().into_string().unwrap()+"\\"+filename);
     let quotes = Data::load(filename,"GOOG")?;
     let sma_cross = sma_cross(quotes.clone(),10,20);
     let sma = simple_sma(quotes.clone(),10);
@@ -33,8 +33,6 @@ pub fn main()->Result<(),Box<dyn Error>>{
     cmp_backt.push(sma_backt);
     cmp_backt.push(sma_cross_backt);
     cmp_backt.push(rsi_backt.clone());
-    //compare(&cmp_backt);
-    uniq_report(cmp_backt);
-    rsi_backt.to_csv("rsi_backtest.csv")?;
+    report(cmp_backt);
     Ok(())
 }

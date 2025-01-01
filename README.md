@@ -51,38 +51,9 @@ let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone
     ```rust
     plot(sma_cross_tester.clone())?;
     ``` 
-  !['plot']("https://github.com/nicferrari/backtester/blob/master/examples/images/plot.png")
+  <img src="https://github.com/nicferrari/backtester/blob/master/examples/images/plot.png" width="200"><BR>
   - you can CSV it
     ```rust
     sma_cross_tester.to_csv()?;
     ```
-  - you can also compare multiple strategies at once (work in progress)
-
-## Further enhancements (to be made)
-- include more complex user-defined commissions (e.g. floors)
-- report of the backtesting with flexible user-decided fields (e.g. maximum drawdown, #trades, ...)
-    this can also be done after the calculate steps on the log data...
-  https://github.com/kernc/backtesting.py as an example
-- report and chart multiple strategies at once and compare them
-- (TBC) rework the strategy definition to use only a function, if possible
-- implement error checking and lifetime of a Backtest object (linked to quotes?)
-- (TBC) GUI with parsing user input
-- diffent types of orders (partial, stop loss, trailing stops, profit taking, ...)<BR>
-<BR>
-- check vs backtrader
-- when order stays for different period, position should be incremented,
-or otherwise implement backtrader-style single orders
-- charting vs buyhold or vs specific strategy
-- adding margins and leveraged trades
-- adding more technical indicators
-- adding to compare strategies report
-## Dependencies
-```rust
-[dependencies]
-yahoo_finance_api = "2.1.0"
-tokio-test = "0.4.3"
-chrono = { version = "0.4.33", features = [] }
-plotters = "0.3.5"
-serde = "1.0.196"
-csv = "1.3.0"
-```
+  - you can also compare multiple strategies at once

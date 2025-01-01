@@ -67,6 +67,7 @@ dependencies = [
  "chrono",
  "csv",
  "plotters",
+ "rand",
  "serde",
  "tokio-test",
  "yahoo_finance_api",
