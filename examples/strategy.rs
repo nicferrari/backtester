@@ -5,12 +5,12 @@ use backtester::orders::Order::{BUY,SHORTSELL,NULL};
 extern crate rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
-use backtester::backtester::Backtest;
+use backtester::backtester::{Backtest, Commission};
 use backtester::report::report;
 
 
 pub fn main() -> Result<(),Box<dyn Error>>{
-    //example to show a to build a strategy
+    //example to show how to build a custom strategy
     let quotes = Data::new_from_yahoo("PLTR","1d","6mo")?;
 
     pub fn random_strategy(quotes:Data)->Strategy{
@@ -31,7 +31,7 @@ pub fn main() -> Result<(),Box<dyn Error>>{
     }
 
     let rnd_strategy = random_strategy(quotes.clone());
-    let random_backtester = Backtest::new(quotes, rnd_strategy, 1e5);
+    let random_backtester = Backtest::new(quotes, rnd_strategy, 1e5, Commission::default());
     report(random_backtester);
     Ok(())
 }

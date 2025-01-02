@@ -1,5 +1,4 @@
 use backtester::datas::Data;
-//use backtester::Result;
 use std::error::Error;
 use backtester::strategies::simple_sma;
 

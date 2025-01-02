@@ -15,8 +15,8 @@ pub fn plot(backtest:Backtest, config: PlotConfig) ->Result<(), Box<dyn std::err
     let lows:Vec<f64> = backtest.quotes().low();
     let closes:Vec<f64> = backtest.quotes().close();
 
-    // if folder does not exists no plotting happens: should implement check and create folder
-    let root = BitMapBackend::new("examples/images/plot.png", (1024, 768)).into_drawing_area();
+    let path = env::current_dir()?.into_os_string().into_string().unwrap()+"\\"+"plot.png";
+    let root = BitMapBackend::new(&path, (1024, 768)).into_drawing_area();
     let _ = root.fill(&WHITE);
 
     let (upper,lower) = root.split_vertically(512);
@@ -55,8 +55,7 @@ pub fn plot(backtest:Backtest, config: PlotConfig) ->Result<(), Box<dyn std::err
         }
     }
 
-
-    struct CustomRow {//no need to have a dedicated struct?
+    struct CustomRow {
         date: DateTime<FixedOffset>,
         value1: f64,
         value2: f64,
@@ -80,11 +79,8 @@ pub fn plot(backtest:Backtest, config: PlotConfig) ->Result<(), Box<dyn std::err
                 vec![(*x, *y)],
                 5, // Circle marker size
                 &RED, // Red color
-                &|c, s, st| {
-                    return EmptyElement::at(c) + //Circle::new((0, 10), s, st.filled()) +
-                        //Text::new(format!("{:?}", z), (0, 15), ("sans-serif", 15)) +
-                        //TriangleMarker::new((-4, -4), 4, RED);
-                        //if *z==orders::Order::BUY {Polygon::new(&[(0, 0), (6, 0), (3, -6)], GREEN)} else {Polygon::new(&[(0, 0), (6, 0), (3, 6)], RED)};
+                &|c, _s, _st| {
+                    return EmptyElement::at(c) +
                         match z{
                             orders::Order::BUY=>Polygon::new(&[(0, 0), (6, 0), (3, -6)], GREEN_900),
                             orders::Order::SHORTSELL=>Polygon::new(&[(0, 0), (6, 0), (3, 6)], RED),
@@ -132,7 +128,7 @@ pub fn plot(backtest:Backtest, config: PlotConfig) ->Result<(), Box<dyn std::err
             .draw()
             .unwrap();
     }
-    println!("Chart saved as = {:?}",env::current_dir()?.into_os_string().into_string().unwrap()+"\\"+"plot.png");
+    println!("Chart saved as = {:?}",path);
     Ok(())
 }
 

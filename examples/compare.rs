@@ -1,6 +1,6 @@
 use std::env;
 use std::error::Error;
-use backtester::backtester::Backtest;
+use backtester::backtester::{Backtest, Commission};
 use backtester::datas::Data;
 use backtester::strategies::{buy_n_hold, rsi_strategy, simple_sma, sma_cross};
 use backtester::report::{report};
@@ -24,11 +24,11 @@ pub fn main()->Result<(),Box<dyn Error>>{
     let sma_cross = sma_cross(quotes.clone(),10,20);
     let sma = simple_sma(quotes.clone(),10);
     let rsi_strategy = rsi_strategy(quotes.clone(),15);
-    let sma_cross_backt = Backtest::new(quotes.clone(),sma_cross,100000.);
-    let sma_backt = Backtest::new(quotes.clone(),sma,100000.);
-    let rsi_backt = Backtest::new(quotes.clone(),rsi_strategy,100000.);
+    let sma_cross_backt = Backtest::new(quotes.clone(),sma_cross,100000., Commission::default());
+    let sma_backt = Backtest::new(quotes.clone(),sma,100000., Commission::default());
+    let rsi_backt = Backtest::new(quotes.clone(),rsi_strategy,100000., Commission::default());
     let mut cmp_backt=Vec::new();
-    let buynhold = Backtest::new(quotes.clone(),buy_n_hold(quotes.clone()),100000.);
+    let buynhold = Backtest::new(quotes.clone(),buy_n_hold(quotes.clone()),100000., Commission::default());
     cmp_backt.push(buynhold);
     cmp_backt.push(sma_backt);
     cmp_backt.push(sma_cross_backt);

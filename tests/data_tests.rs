@@ -1,5 +1,4 @@
 use std::error::Error;
-//use backtester::Result;
 use backtester::datas::Data;
 
 

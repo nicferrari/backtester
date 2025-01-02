@@ -1,4 +1,7 @@
 # rs-backtester
+[![Latest version](https://img.shields.io/crates/v/rs-backtester.svg)](https://crates.io/crates/rs-backtester)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/huggingface/candle/blob/main/LICENSE-APACHE)
+
 rs-backtester is a financial backtesting library written entirely in Rust with the purpose of being
 easy-to-use yet flexible enough to allow a quick implementation of different strategies
 
@@ -6,7 +9,7 @@ easy-to-use yet flexible enough to allow a quick implementation of different str
 - To install simply add rs-backtester to your cargo.toml
 ```rust
 [dependencies]
-rs-backtester = "0.0.1"
+rs-backtester = "0.1.0"
 ```
 ## Get started
 
@@ -29,14 +32,14 @@ which makes use of the crate yahoo-finance-api
 let quotes = Data::new_from_yahoo("GOOG")?;
 ```
 - Create a function which returns a Strategy or use one provided by the library.<BR>
-A Strategy is simply a vector of Choices (e.g. BUY, SHORTSELL, ...)
+A Strategy is basically a vector of Choices (e.g. BUY, SHORTSELL, ...)
 and the indicator used
 ```rust
 let sma_cross_strategy = sma_cross(quotes.clone(), 10,20);
 ```
 - Create an instance of the Backtest class
 ```rust
-let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64);
+let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64, Commission::default());
 ```
 - Now:
   - you can read a report of the backtest
@@ -51,8 +54,8 @@ let mut sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone
     ```rust
     plot(sma_cross_tester.clone())?;
     ``` 
-  <img src="https://github.com/nicferrari/backtester/blob/master/examples/images/plot.png" width="200"><BR>
-  - you can CSV it
+  <img src="https://github.com/nicferrari/backtester/blob/master/examples/images/plot.png" width="400"><BR>
+  - you can save it to CSV for inspection
     ```rust
     sma_cross_tester.to_csv()?;
     ```

@@ -9,7 +9,6 @@ use std::error::Error;
 fn download_data(ticker:&str, interval:&str, range:&str) ->Result<Vec<Quote>,Box<dyn Error>>{
     let provider = yahoo::YahooConnector::new().unwrap();
     let response = tokio_test::block_on(provider.get_quote_range(ticker, interval, range)).unwrap();
-    //let response = tokio_test::block_on(provider.get_quote_range("AAPL", "1d", "1mo")).unwrap();
     let quotes = response.quotes().unwrap();
     return Ok(quotes);
 }
@@ -123,7 +122,7 @@ impl Data{
             let sought_date = match i.chars().last() {
                 Some('w') => last_date.checked_sub_signed(Duration::weeks(i[..i.len() - 1].parse().unwrap())).unwrap(),
                 Some('d') => last_date.checked_sub_signed(Duration::days(i[..i.len() - 1].parse().unwrap())).unwrap(),
-                Some(c) => *last_date,
+                Some(_c) => *last_date,
                 None => *last_date,
             };
             //println!("looking for {:}", sought_date.date_naive());
@@ -140,5 +139,4 @@ impl Data{
             println!("{} - {}",self.datetime[i],self.close[i]);
         }
     }
-
 }
