@@ -1,14 +1,10 @@
 [package]
-name = "backtester"
+name = "rs-backtester"
 version = "0.1.0"
 description = "Financial backesting library"
-authors = []
-license = ""
-repository = ""
+license = "Apache-2.0"
+repository = "https://github.com/nicferrari/backtester"
 edition = "2021"
-
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 yahoo_finance_api = "2.2.1"

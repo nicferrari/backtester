@@ -1,6 +1,6 @@
-use backtester::datas::Data;
+use rs_backtester::datas::Data;
 use std::error::Error;
-use backtester::ta::{Indicator, rsi};
+use rs_backtester::ta::{Indicator, rsi};
 #[test]
 fn indicator_tests()->Result<(), Box<dyn Error>>{
     let quotes = &Data::new_from_yahoo("AAPL","1d","1mo")?;

@@ -1,7 +1,7 @@
-use backtester::backtester::{Backtest, Commission};
-use backtester::datas::Data;
-use backtester::strategies::{sma_cross};
-use backtester::charts::{plot, PlotConfig};
+use rs_backtester::backtester::{Backtest, Commission};
+use rs_backtester::datas::Data;
+use rs_backtester::strategies::{sma_cross};
+use rs_backtester::charts::{plot, PlotConfig};
 use std::error::Error;
 
 pub fn main() -> Result<(),Box<dyn Error>> {

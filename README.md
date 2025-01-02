@@ -1,6 +1,6 @@
 # rs-backtester
 [![Latest version](https://img.shields.io/crates/v/rs-backtester.svg)](https://crates.io/crates/rs-backtester)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/huggingface/candle/blob/main/LICENSE-APACHE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/nicferrari/backtester/blob/master/LICENSE-APACHE-2.0)
 
 rs-backtester is a financial backtesting library written entirely in Rust with the purpose of being
 easy-to-use yet flexible enough to allow a quick implementation of different strategies

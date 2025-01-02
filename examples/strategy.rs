@@ -1,12 +1,12 @@
 use std::error::Error;
-use backtester::datas::Data;
-use backtester::strategies::Strategy;
-use backtester::orders::Order::{BUY,SHORTSELL,NULL};
+use rs_backtester::datas::Data;
+use rs_backtester::strategies::Strategy;
+use rs_backtester::orders::Order::{BUY,SHORTSELL,NULL};
 extern crate rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
-use backtester::backtester::{Backtest, Commission};
-use backtester::report::report;
+use rs_backtester::backtester::{Backtest, Commission};
+use rs_backtester::report::report;
 
 
 pub fn main() -> Result<(),Box<dyn Error>>{

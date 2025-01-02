@@ -1,6 +1,6 @@
-use backtester::backtester::{Backtest, Commission};
-use backtester::datas::Data;
-use backtester::strategies::buy_n_hold;
+use rs_backtester::backtester::{Backtest, Commission};
+use rs_backtester::datas::Data;
+use rs_backtester::strategies::buy_n_hold;
 use std::error::Error;
 
 #[test]

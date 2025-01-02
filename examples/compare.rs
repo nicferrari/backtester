@@ -1,9 +1,9 @@
 use std::env;
 use std::error::Error;
-use backtester::backtester::{Backtest, Commission};
-use backtester::datas::Data;
-use backtester::strategies::{buy_n_hold, rsi_strategy, simple_sma, sma_cross};
-use backtester::report::{report};
+use rs_backtester::backtester::{Backtest, Commission};
+use rs_backtester::datas::Data;
+use rs_backtester::strategies::{buy_n_hold, rsi_strategy, simple_sma, sma_cross};
+use rs_backtester::report::{report};
 use std::env::{args};
 
 pub fn main()->Result<(),Box<dyn Error>>{

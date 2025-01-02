@@ -1,6 +1,6 @@
-use backtester::datas::Data;
+use rs_backtester::datas::Data;
 use std::error::Error;
-use backtester::strategies::simple_sma;
+use rs_backtester::strategies::simple_sma;
 
 #[test]
 fn strategies_tests()->Result<(), Box<dyn Error>>{

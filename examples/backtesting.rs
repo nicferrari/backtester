@@ -1,8 +1,8 @@
 use std::error::Error;
-use backtester::backtester::{Backtest, Commission};
-use backtester::datas::Data;
-use backtester::strategies::{sma_cross};
-use backtester::report::{report};
+use rs_backtester::backtester::{Backtest, Commission};
+use rs_backtester::datas::Data;
+use rs_backtester::strategies::{sma_cross};
+use rs_backtester::report::{report};
 
 fn main()->Result<(),Box<dyn Error>>{
     //example to calculate backtesting results

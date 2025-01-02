@@ -1,5 +1,5 @@
 use std::error::Error;
-use backtester::datas::Data;
+use rs_backtester::datas::Data;
 
 
 #[test]
