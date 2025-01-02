@@ -54,7 +54,7 @@ let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),1
     ```rust
     plot(sma_cross_tester.clone())?;
     ``` 
-  <img src="https://github.com/nicferrari/backtester/blob/master/examples/images/plot.png" width="400"><BR>
+  <img src="https://github.com/nicferrari/backtester/blob/master/plot.png" width="400"><BR>
   - you can save it to CSV for inspection
     ```rust
     sma_cross_tester.to_csv()?;
