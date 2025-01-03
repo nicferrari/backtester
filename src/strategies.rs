@@ -5,8 +5,8 @@ use crate::orders::Order::{BUY,SHORTSELL,NULL};
 use std::error::Error;
 use crate::ta::{Indicator,sma,rsi};
 
-/// Struct to hold vector of choices and indicators.
-/// There is no specific constructor.
+/// Struct to hold vector of choices and indicators<BR>
+/// There is no specific constructor<BR>
 /// Need to be created via a user-defined function which return a Strategy
 #[derive(Clone)]
 pub struct Strategy{
@@ -29,8 +29,34 @@ impl Strategy{
         }
         let indicator = self.indicator.clone();
         Strategy{
-            name:"invert".to_string(),
+            name:self.name.clone()+"_inv",
             choices: inv_choices,
+            indicator,
+        }
+    }
+    pub fn long_only(&self) ->Self{
+        let length = self.choices.len();
+        let mut long_choices = self.choices.clone();
+        for i in 0..length{
+            if self.choices[i]==SHORTSELL { long_choices[i]=NULL}
+        }
+        let indicator = self.indicator.clone();
+        Strategy{
+            name:self.name.clone()+"_long",
+            choices: long_choices,
+            indicator,
+        }
+    }
+    pub fn short_only(&self) ->Self{
+        let length = self.choices.len();
+        let mut short_choices = self.choices.clone();
+        for i in 0..length{
+            if self.choices[i]==BUY { short_choices[i]=NULL}
+        }
+        let indicator = self.indicator.clone();
+        Strategy{
+            name:self.name.clone()+"_short",
+            choices: short_choices,
             indicator,
         }
     }
@@ -45,6 +71,7 @@ impl Strategy{
     }
 }
 
+///Returns typical Buy and Hold Strategy
 pub fn buy_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![BUY;length];
@@ -56,6 +83,8 @@ pub fn buy_n_hold(quotes:Data)->Strategy{
         indicator,
     }
 }
+///Returns the opposite of a Buy and Hold Strategy:
+/// start by shortselling and keep the short position open to the end
 pub fn short_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![SHORTSELL;length];
@@ -67,6 +96,7 @@ pub fn short_n_hold(quotes:Data)->Strategy{
         indicator,
     }
 }
+///Returns a Strategy which does exactly nothing (i.e. always stays out of the market)
 pub fn do_nothing(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![NULL;length];
@@ -78,6 +108,7 @@ pub fn do_nothing(quotes:Data)->Strategy{
         indicator,
     }
 }
+///Returns a Simple Moving Average Strategy with a user specified time-period
 pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
     let sma = sma(&quotes,period);
     let indicator = Indicator{indicator:sma,quotes:quotes};
@@ -99,7 +130,10 @@ pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
         indicator,
     }
 }
+///Returns a Simple Moving Average Crossing Strategy (i.e. goes long when SMA short crosses SMA long and shortsells otherwise)<BR>
+///User can specify both time-periods (short and long, with short first)
 pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
+    if short_period >= long_period {panic!("Error: short SMA parameter should be shorter than long SMA parameter");}
     let sma_short = sma(&quotes, short_period);
     let sma_long = sma(&quotes, long_period);
     let ind_short = Indicator{indicator:sma_short,quotes:quotes.clone()};
@@ -120,6 +154,7 @@ pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
         indicator:indicator,
     }
 }
+///Returns a Relative Strength Index Strategy (i.e. goes long if RSI > 70, shorts when RSI < 30)
 pub fn rsi_strategy(quotes:Data, period:usize)->Strategy{
     let rsi = rsi(&quotes,period);
     let indicator = Indicator{indicator:rsi,quotes};

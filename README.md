@@ -1,6 +1,6 @@
 # rs-backtester
 [![Latest version](https://img.shields.io/crates/v/rs-backtester.svg)](https://crates.io/crates/rs-backtester)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/nicferrari/backtester/blob/master/LICENSE-APACHE-2.0)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/nicferrari/rs-backtester/blob/master/LICENSE-APACHE-2.0)
 
 rs-backtester is a financial backtesting library written entirely in Rust with the purpose of being
 easy-to-use yet flexible enough to allow a quick implementation of different strategies
@@ -44,9 +44,9 @@ let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),1
 - Now:
   - you can read a report of the backtest
     ```rust
-    report(&sma_cross_tester);
+    report(sma_cross_tester);
     ```
-  - you can produce a log period by period with the requested parameter
+  - you can produce a log period by period with the requested parameters
     ```rust
     sma_cross_tester.log(&["date","open","high","low","close","position","account","indicator"]);
     ```
@@ -54,9 +54,12 @@ let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),1
     ```rust
     plot(sma_cross_tester.clone())?;
     ``` 
-  <img src="https://github.com/nicferrari/backtester/blob/master/plot.png" width="400"><BR>
+  <img src="https://github.com/nicferrari/rs-backtester/blob/master/plot.png" width="400"><BR>
   - you can save it to CSV for inspection
     ```rust
     sma_cross_tester.to_csv()?;
     ```
   - you can also compare multiple strategies at once
+  - and you can also play with your strategy modifying it by inverting it or transform it in long or short-only
+<HR>
+Check the examples folder for more!

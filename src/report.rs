@@ -1,5 +1,5 @@
 use crate::backtester::Backtest;
-use crate::orders::Order::{BUY, NULL};
+use crate::orders::Order::{BUY, SHORTSELL, NULL};
 
 pub trait BacktestNr {
     fn uniquereport(&self);
@@ -46,6 +46,16 @@ impl BacktestNr for Vec<Backtest>{
                     if profit>0.{n_win_trades = n_win_trades+1};
                 }
             }
+            //implement force-close of an existing position
+            if *i.strategy().choices().iter().nth_back(1).unwrap()==BUY{profit = *i.quotes().close().last().unwrap()*(1.-i.commission_rate())/starting_value-1.}
+            else if *i.strategy().choices().iter().nth_back(1).unwrap()==SHORTSELL{profit = starting_value/i.quotes().close().last().unwrap()*(1.+i.commission_rate())-1.}
+            max_profit = f64::max(max_profit, profit);
+            max_loss = f64::min(max_loss, profit);
+            if profit>0.{n_win_trades = n_win_trades+1};
+
+            //if last period has a choice but second-to-last hasn't, trade has still to happen
+            if (*i.strategy().choices().iter().nth_back(1).unwrap()==NULL) & (*i.strategy().choices().iter().last().unwrap()!=NULL) {trade_count=trade_count-1;}
+
             print!("{}",format!("{:<width$}", i.strategy().name(), width = 20));
             print!("{}",format!("{:>width$}",format!("{:.2}%",ret*100.),width=20));
             print!("{}",format!("{:>width$}",format!("{:.2}%",100.-(null_count as f64)/(i.quotes().timestamps().len() as f64)*100.),width=20));
