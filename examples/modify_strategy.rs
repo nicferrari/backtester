@@ -33,6 +33,5 @@ fn main() ->Result<(),Box<dyn Error>> {
     println!("SMA Cross Strategy - Short Only");
     println!("---------------------------");
     report(sma_cross_short_tester);
-    sma_cross_tester.to_csv("debug.csv")?;
     Ok(())
 }
