@@ -67,7 +67,7 @@ impl Backtest{
     pub fn commission_rate(&self)->f64{return self.commission.rate.clone();}
     ///Returns Strategy
     pub fn strategy(&self)->Strategy{return self.strategy.clone();}
-    ///Function which display the requested log values of the calculations made period by period.
+    ///Function which display the requested log values of the calculations made period by period.<BR>
     ///Available choices at the moment are: close, open, low, high, position, account, indicator(s, up to 2)
     pub fn log(&self, list:&[&str]){
         let mut data_functions: HashMap<&str, fn(&Data)->Vec<f64>>=HashMap::new();

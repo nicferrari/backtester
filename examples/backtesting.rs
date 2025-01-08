@@ -18,9 +18,9 @@ fn main()->Result<(),Box<dyn Error>>{
     let mut commission = Commission::default();
     commission.rate = 0.01;
 
-    let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64, commission);
+    let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64, commission.clone());
     println!("---------------------------");
-    println!("Now with 1% commission rate");
+    println!("Now with {:.2}% commission rate",commission.rate*100.);
     println!("---------------------------");
     report(sma_cross_tester);
     Ok(())

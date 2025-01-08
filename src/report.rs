@@ -13,7 +13,6 @@ impl BacktestNr for Backtest{
 
 impl BacktestNr for Vec<Backtest>{
     fn uniquereport(&self) {
-        // TODO: metrics should be adjusted for commissions (now they're not considered)
         print!("{}",format!("{:<width$}","Strategies",width=20));
         print!("{}",format!("{:>width$}","Return",width=20));
         print!("{}",format!("{:>width$}","Exposure Time %",width=20));
@@ -36,7 +35,7 @@ impl BacktestNr for Vec<Backtest>{
                 if i.strategy().choices()[j] != i.strategy().choices()[j - 1] {
                     if trade_count != 0 {
                         if i.strategy().choices()[j - 1] == BUY { profit = i.quotes().open()[j + 1] * (1. - i.commission_rate()) / starting_value - 1. }
-                        else if i.strategy().choices()[j-1] == SHORTSELL{ profit = starting_value / i.quotes().open()[j + 1] * (1. + i.commission_rate()) - 1. }
+                        else if i.strategy().choices()[j-1] == SHORTSELL{ profit = starting_value / (i.quotes().open()[j + 1] * (1. + i.commission_rate())) - 1. }
                     };
                     if i.strategy().choices()[j] == BUY {
                         starting_value = i.quotes().open()[j + 1] * (1. + i.commission_rate())
