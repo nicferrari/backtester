@@ -75,7 +75,7 @@ impl Strategy{
 pub fn buy_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![BUY;length];
-    let name = "buy and hold".to_string();
+    let name = "buy_and_hold".to_string();
     let indicator = Some(vec![vec![-1.;length]]);
     Strategy{
         name:name,

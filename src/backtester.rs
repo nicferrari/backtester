@@ -106,7 +106,7 @@ impl Backtest{
     fn calculate(&mut self){
         let mut stance = Stance::NULL;
         let mut previous_position = 0.;
-        let mut previous_account = 100000.;
+        let mut previous_account = self.account[0];
         for i in 1..self.quotes.timestamps().len(){
             match self.strategy.choices()[i-1]{
                 Order::BUY=>{
