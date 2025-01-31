@@ -13,6 +13,8 @@ impl BacktestNr for Backtest{
 
 impl BacktestNr for Vec<Backtest>{
     fn uniquereport(&self) {
+        println!("Backtesting period {:?} - {:?} - ticker = {}", self.first().unwrap().quotes().timestamps().first().unwrap().date_naive(),
+                 self.first().unwrap().quotes().timestamps().last().unwrap().date_naive(),self.first().unwrap().quotes().ticker());
         print!("{}",format!("{:<width$}","Strategies",width=20));
         print!("{}",format!("{:>width$}","Return",width=20));
         print!("{}",format!("{:>width$}","Exposure Time %",width=20));

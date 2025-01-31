@@ -3,7 +3,6 @@ use std::env;
 use csv::Writer;
 use std::error::Error;
 use crate::strategies::Strategy;
-use crate::{orders};
 use crate::datas::Data;
 use crate::orders::Order;
 
@@ -18,7 +17,7 @@ pub struct Backtest{
 }
 
 ///Define the commission scheme.
-/// At the moment only allows a fixed rate commission for both long and short positions.
+/// At the moment only allows a unique fixed rate commission for both long and short positions.
 #[derive(Clone)]
 pub struct Commission{
     pub rate:f64,
@@ -102,7 +101,7 @@ impl Backtest{
             println!();
         }
     }
-    ///function which does the actual backtest and returns a vector of (signed) positions and account values
+    ///function which does the actual backtest and stores vectors of (signed) positions and account values
     fn calculate(&mut self){
         let mut stance = Stance::NULL;
         let mut previous_position = 0.;
@@ -131,7 +130,7 @@ impl Backtest{
                         self.account[i] = previous_account;
                     }
                 }
-                orders::Order::NULL=>{
+                Order::NULL=>{
                     if stance!=Stance::NULL{
                         let networth = previous_account + previous_position * self.quotes.open()[i]*(1.-previous_position.signum()*self.commission.rate);
                         self.position[i]=0.;

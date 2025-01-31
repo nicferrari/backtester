@@ -154,7 +154,7 @@ pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
         indicator:indicator,
     }
 }
-///Returns a Relative Strength Index Strategy (i.e. goes long if RSI > 70, shorts when RSI < 30)
+///Returns a Relative Strength Index Strategy (i.e. goes short if RSI > 70, long when RSI < 30, and stay out of market elsewhere)
 pub fn rsi_strategy(quotes:Data, period:usize)->Strategy{
     let rsi = rsi(&quotes,period);
     let indicator = Indicator{indicator:rsi,quotes};
