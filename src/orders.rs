@@ -1,4 +1,6 @@
-#[derive(Copy, Clone, Debug, PartialEq)]
+use serde::Serialize;
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize)]
 pub enum Order{
     BUY,
     SHORTSELL,

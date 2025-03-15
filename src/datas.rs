@@ -5,6 +5,8 @@ use yahoo_finance_api as yahoo;
 use yahoo_finance_api::{Quote};
 use tokio_test;
 use std::error::Error;
+use serde::{Serialize, Serializer};
+use serde::ser::{SerializeSeq};
 
 fn download_data(ticker:&str, interval:&str, range:&str) ->Result<Vec<Quote>,Box<dyn Error>>{
     let provider = yahoo::YahooConnector::new().unwrap();
@@ -13,14 +15,35 @@ fn download_data(ticker:&str, interval:&str, range:&str) ->Result<Vec<Quote>,Box
     return Ok(quotes);
 }
 ///struct to contain all market data (ticker + OHLC)
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct Data{
-    ticker:String,
-    datetime:Vec<DateTime<FixedOffset>>,
-    open:Vec<f64>,
-    high:Vec<f64>,
-    low:Vec<f64>,
-    close:Vec<f64>,
+pub ticker:String,
+    #[serde(serialize_with = "serialize_datetime_vec")]
+pub datetime:Vec<DateTime<FixedOffset>>,
+pub open:Vec<f64>,
+pub high:Vec<f64>,
+pub low:Vec<f64>,
+pub close:Vec<f64>,
+}
+/*
+fn serialize_datetime<S>(datetime: &DateTime<FixedOffset>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+{
+    let s = datetime.to_rfc3339();
+    serializer.serialize_str(&s)
+}
+*/
+
+fn serialize_datetime_vec<S>(datetimes: &Vec<DateTime<FixedOffset>>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+{
+    let mut seq = serializer.serialize_seq(Some(datetimes.len()))?;
+    for datetime in datetimes {
+        seq.serialize_element(&datetime.to_rfc3339())?;
+    }
+    seq.end()
 }
 
 impl Data{

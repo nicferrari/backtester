@@ -4,11 +4,12 @@ use crate::orders::Order;
 use crate::orders::Order::{BUY,SHORTSELL,NULL};
 use std::error::Error;
 use crate::ta::{Indicator,sma,rsi};
+use serde::{Serialize};
 
 /// Struct to hold vector of choices and indicators<BR>
 /// There is no specific constructor<BR>
 /// Need to be created via a user-defined function which return a Strategy
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct Strategy{
     pub name:String,
     pub choices:Vec<Order>,

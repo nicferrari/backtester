@@ -208,5 +208,5 @@ impl Backtest{
                 wrt.flush()?;
                 println!("Backtesting saved as = {:?}",env::current_dir()?.into_os_string().into_string().unwrap()+"\\"+filename);
                 Ok(())
-            }
-        }
+    }
+}
