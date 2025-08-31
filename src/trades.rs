@@ -13,11 +13,11 @@ pub struct Trade{
     open_price:f64,
     close_price:f64,
     pl:f64,
+    pl_net:f64,
 }
 
 ///Produce the list of trades executed by the strategy
 pub fn trade_list(backtest: Backtest){
-    //todo! add commissions to pl (and prices?)
     let mut trades:Vec<Trade> = Vec::new();
     for i in 1..backtest.quotes().close.len()-1{
         if backtest.strategy().choices[i]!=backtest.strategy().choices[i-1] && backtest.strategy().choices[i]!=Order::NULL {
@@ -32,6 +32,7 @@ pub fn trade_list(backtest: Backtest){
                         open_price: backtest.quotes().open[i+1],
                         close_price: backtest.quotes().open[j+1],
                         pl:(pl-1.0)*100.,
+                        pl_net:(pl*(1.-backtest.commission_rate())/(1.+backtest.commission_rate())-1.0)*100.,
                     };
                     trades.push(newtrade);
                     break;
@@ -47,6 +48,7 @@ pub fn trade_list(backtest: Backtest){
                         open_price: backtest.quotes().open[i+1],
                         close_price: backtest.quotes().open[backtest.quotes().close.len()-1],
                         pl:(pl-1.0)*100.,
+                        pl_net:(pl*(1.-backtest.commission_rate())/(1.+backtest.commission_rate())-1.0)*100.,
                     };
                     trades.push(newtrade);
                 };
@@ -64,12 +66,13 @@ pub fn trade_list(backtest: Backtest){
             open_price:backtest.quotes().open[backtest.strategy().choices.len()-1],
             close_price:backtest.quotes().close[backtest.strategy().choices.len()-1],
             pl:(pl-1.0)*100.,
+            pl_net:(pl*(1.-backtest.commission_rate())/(1.+backtest.commission_rate())-1.0)*100.,
         };
         trades.push(newtrade);
     }
     for i in 0..trades.len(){
-        println!("Trade {:} opened at {:?} closed at {:?}, order = {:?} executed at {:.2} and closed at {:.2}, p&l = {:.2}%"
+        println!("Trade {:} opened at {:?} closed at {:?}, order = {:?} executed at {:.2} and closed at {:.2}, p&l = {:.2}%  net = {:.2}%"
                  ,i+1,trades[i].open_date.date_naive(),trades[i].close_date.date_naive(), trades[i].order, trades[i].open_price, trades[i].close_price,
-        trades[i].pl);
+        trades[i].pl, trades[i].pl_net);
     }
 }

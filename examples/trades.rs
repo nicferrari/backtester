@@ -16,9 +16,11 @@ fn main() {
     let backtest_short = Backtest::new(quotes.clone(), simple_sma(quotes.clone(), 10).short_only(), 100000., Commission::default());
     report(backtest_short.clone());
     trade_list(backtest_short.clone());
-    //backtest_short.to_csv("trade_list.csv").unwrap();
-    let backtest_cross = Backtest::new(quotes.clone(), sma_cross(quotes.clone(), 5, 20), 100000., Commission::default());
+    backtest_short.to_csv("trade_list.csv").unwrap();
+    let mut commission = Commission::default();
+    commission.rate=0.01;
+    let backtest_cross = Backtest::new(quotes.clone(), sma_cross(quotes.clone(), 5, 20), 100000., commission);
     report(backtest_cross.clone());
     trade_list(backtest_cross.clone());
-    //backtest_cross.to_csv("trade_list.csv").unwrap()
+    backtest_cross.to_csv("trade_list.csv").unwrap()
 }
