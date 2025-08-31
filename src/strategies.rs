@@ -117,9 +117,9 @@ pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
     let mut choices = vec![NULL;length];
     for i in 0..length{
         if indicator.indicator[i]!=-1.{
-            if indicator.indicator[i]>=indicator.quotes.open()[i]{
+            if indicator.indicator[i]<=indicator.quotes.close()[i]{
                 choices[i] = BUY;
-            }else if indicator.indicator[i]<indicator.quotes.open()[i]{
+            }else if indicator.indicator[i]>indicator.quotes.close()[i]{
                choices[i] = SHORTSELL}
         }
     }
