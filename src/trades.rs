@@ -15,8 +15,9 @@ pub struct Trade{
     pl:f64,
 }
 
-///Produce a list of trades executed by the strategy
+///Produce the list of trades executed by the strategy
 pub fn trade_list(backtest: Backtest){
+    //todo! add commissions to pl (and prices?)
     let mut trades:Vec<Trade> = Vec::new();
     for i in 1..backtest.quotes().close.len()-1{
         if backtest.strategy().choices[i]!=backtest.strategy().choices[i-1] && backtest.strategy().choices[i]!=Order::NULL {
@@ -38,7 +39,7 @@ pub fn trade_list(backtest: Backtest){
                 //automatically close last trade
                 if j==backtest.strategy().choices.len()-2 && backtest.strategy().choices[i]!=Order::NULL{
                     let pl = if backtest.strategy().choices[i]==Order::BUY {backtest.quotes().open[backtest.quotes().close.len()-1]/backtest.quotes().open[i+1]}
-                    else{backtest.quotes().open[i+1]/backtest.quotes().open[backtest.quotes().close.len()-1]};
+                        else{backtest.quotes().open[i+1]/backtest.quotes().open[backtest.quotes().close.len()-1]};
                     let newtrade = Trade{
                         open_date: backtest.quotes().datetime[i+1],
                         close_date:backtest.quotes().datetime[backtest.quotes().close.len()-1],
@@ -51,6 +52,20 @@ pub fn trade_list(backtest: Backtest){
                 };
             }
         };
+    }
+    //adding case of trade opened on last date (+ automatic close)
+    if backtest.strategy().choices[backtest.strategy().choices.len()-2]!=backtest.strategy().choices[backtest.strategy().choices.len()-3]&&backtest.strategy().choices[backtest.strategy().choices.len()-2]!=Order::NULL{
+        let pl = if backtest.strategy().choices[backtest.strategy().choices.len()-2]==Order::BUY {backtest.quotes().close[backtest.quotes().close.len()-1]/backtest.quotes().open[backtest.strategy().choices.len()-1]}
+            else{backtest.quotes().close[backtest.strategy().choices.len()-1]/backtest.quotes().open[backtest.quotes().close.len()-1]};
+        let newtrade = Trade{
+            open_date: backtest.quotes().datetime[backtest.strategy().choices.len()-1],
+            close_date: backtest.quotes().datetime[backtest.strategy().choices.len()-1],
+            order: backtest.strategy().choices[backtest.strategy().choices.len()-2],
+            open_price:backtest.quotes().open[backtest.strategy().choices.len()-1],
+            close_price:backtest.quotes().close[backtest.strategy().choices.len()-1],
+            pl:(pl-1.0)*100.,
+        };
+        trades.push(newtrade);
     }
     for i in 0..trades.len(){
         println!("Trade {:} opened at {:?} closed at {:?}, order = {:?} executed at {:.2} and closed at {:.2}, p&l = {:.2}%"
