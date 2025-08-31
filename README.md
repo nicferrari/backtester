@@ -2,7 +2,7 @@
 [![Latest version](https://img.shields.io/crates/v/rs-backtester.svg)](https://crates.io/crates/rs-backtester)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/nicferrari/rs-backtester/blob/master/LICENSE-APACHE-2.0)
 
-rs-backtester is a financial backtesting library written entirely in Rust with the purpose of being
+rs-backtester is a financial backtesting library entirely written  in Rust with the purpose of being
 easy-to-use yet flexible enough to allow a quick implementation of different strategies
 
 ## Get started
@@ -44,6 +44,10 @@ let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),1
   - you can produce a log period by period with the requested parameters
     ```rust
     sma_cross_tester.log(&["date","open","high","low","close","position","account","indicator"]);
+    ```
+  - you can see the list of trades executed by the strategy
+    ```rust
+    trade_list(sma_cross_tester);
     ```
   - you can chart it (with indicators)
     ```rust

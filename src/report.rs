@@ -46,7 +46,7 @@ impl BacktestNr for Vec<Backtest>{
                     };
                     max_profit = f64::max(max_profit, profit);
                     max_loss = f64::min(max_loss, profit);
-                    if profit > 0. { n_win_trades = n_win_trades + 1;};
+                    if profit > 0. { n_win_trades = n_win_trades + 1;profit=0.};
                     if i.strategy().choices()[j] != NULL {
                         trade_count = trade_count + 1;
                     }

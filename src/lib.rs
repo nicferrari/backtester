@@ -7,5 +7,6 @@ pub mod backtester;
 pub mod ta;
 pub mod report;
 pub mod utilities;
+pub mod trades;
 
 pub use errors::{Result};
