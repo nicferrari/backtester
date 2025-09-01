@@ -17,7 +17,7 @@ pub struct Trade{
 }
 
 ///Produce the list of trades executed by the strategy
-pub fn trade_list(backtest: Backtest){
+pub fn trade_list(backtest: Backtest)->TradeList{
     let mut trades:Vec<Trade> = Vec::new();
     for i in 1..backtest.quotes().close.len()-1{
         if backtest.strategy().choices[i]!=backtest.strategy().choices[i-1] && backtest.strategy().choices[i]!=Order::NULL {
@@ -75,4 +75,5 @@ pub fn trade_list(backtest: Backtest){
                  ,i+1,trades[i].open_date.date_naive(),trades[i].close_date.date_naive(), trades[i].order, trades[i].open_price, trades[i].close_price,
         trades[i].pl, trades[i].pl_net);
     }
+    TradeList{trades}
 }
