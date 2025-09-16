@@ -14,16 +14,17 @@ fn download_data(ticker:&str, interval:&str, range:&str) ->Result<Vec<Quote>,Box
     let quotes = response.quotes().unwrap();
     return Ok(quotes);
 }
-///struct to contain all market data (ticker + OHLC)
+///struct to contain all market data (ticker + OHLCV)
 #[derive(Clone, Serialize)]
 pub struct Data{
-pub ticker:String,
+    pub ticker:String,
     #[serde(serialize_with = "serialize_datetime_vec")]
-pub datetime:Vec<DateTime<FixedOffset>>,
-pub open:Vec<f64>,
-pub high:Vec<f64>,
-pub low:Vec<f64>,
-pub close:Vec<f64>,
+    pub datetime:Vec<DateTime<FixedOffset>>,
+    pub open:Vec<f64>,
+    pub high:Vec<f64>,
+    pub low:Vec<f64>,
+    pub close:Vec<f64>,
+    pub volume:Vec<u64>,
 }
 /*
 fn serialize_datetime<S>(datetime: &DateTime<FixedOffset>, serializer: S) -> Result<S::Ok, S::Error>
@@ -49,13 +50,14 @@ fn serialize_datetime_vec<S>(datetimes: &Vec<DateTime<FixedOffset>>, serializer:
 impl Data{
     ///retrieve OHLC data from yahoo
     pub fn new_from_yahoo(ticker:&str, interval:&str, range:&str) ->Result<Self, Box<dyn Error>>{
-        let quotes = download_data(&ticker,interval, range)?;
+        let quotes = download_data(&ticker, interval, range)?;
         let timestamps:Vec<u64> = quotes.iter().map(|s|s.timestamp).collect();
         let yahoo_datetimes: Vec<DateTime<FixedOffset>> = timestamps.iter().map(|&ts|{FixedOffset::east_opt(0).unwrap().timestamp_opt(ts as i64,0).unwrap()}).collect();
         let opens:Vec<f64> = quotes.iter().map(|s|s.open).collect();
         let highs:Vec<f64> = quotes.iter().map(|s|s.high).collect();
         let lows:Vec<f64> = quotes.iter().map(|s|s.low).collect();
         let closes:Vec<f64> = quotes.iter().map(|s|s.close).collect();
+        let volumes:Vec<u64> = quotes.iter().map(|s|s.volume).collect();
         Ok(Data{
             ticker:ticker.to_string(),
             datetime:yahoo_datetimes,
@@ -63,6 +65,7 @@ impl Data{
             high:highs,
             low:lows,
             close:closes,
+            volume:volumes,
         })
     }
     pub fn save(&self, filename:&str)->Result<(), Box<dyn Error>>{
@@ -72,9 +75,10 @@ impl Data{
         let high_t:Vec<Vec<String>> = self.high.iter().map(|e|vec![e.to_string()]).collect();
         let low_t:Vec<Vec<String>> = self.low.iter().map(|e|vec![e.to_string()]).collect();
         let close_t:Vec<Vec<String>> = self.close.iter().map(|e|vec![e.to_string()]).collect();
-        wrt.serialize(("DATE","OPEN","HIGH","LOW","CLOSE")).expect("cannot write data");
-        for ((((date,open),high),low),close) in dates_t.iter().zip(open_t.iter()).zip(high_t.iter()).zip(low_t.iter()).zip(close_t.iter()){
-            wrt.serialize((date,open,high,low,close)).expect("cannot write data");
+        let volumes_t:Vec<Vec<String>> = self.volume.iter().map(|e|vec![e.to_string()]).collect();
+        wrt.serialize(("DATE","OPEN","HIGH","LOW","CLOSE","VOLUME")).expect("cannot write data");
+        for (((((date,open),high),low),close),volume) in dates_t.iter().zip(open_t.iter()).zip(high_t.iter()).zip(low_t.iter()).zip(close_t.iter()).zip(volumes_t.iter()){
+            wrt.serialize((date,open,high,low,close,volume)).expect("cannot write data");
         }
         wrt.flush().expect("cannot write file");
         Ok(())
@@ -88,6 +92,7 @@ impl Data{
         let mut high = Vec::new();
         let mut low = Vec::new();
         let mut close = Vec::new();
+        let mut volume= Vec::new();
         for result in rdr.records(){
             let record = result.expect("couldn't read data");
             let dates:DateTime<FixedOffset> = record[0].parse().expect("couldn't read data");
@@ -95,11 +100,13 @@ impl Data{
             let highs:f64 = record[2].parse().expect("couldn't read data");
             let lows:f64 = record[3].parse().expect("couldn't read data");
             let closes:f64 = record[4].parse().expect("couldn't read data");
+            let volumes:u64 = record[5].parse().expect("couldn't read data");
             datetime.push(dates);
             open.push(opens);
             high.push(highs);
             low.push(lows);
             close.push(closes);
+            volume.push(volumes);
         }
         Ok(Data{
             ticker:ticker.to_string(),
@@ -108,6 +115,7 @@ impl Data{
             high,
             low,
             close,
+            volume,
         })
     }
     pub fn ticker(&self)->&str{
@@ -160,6 +168,17 @@ impl Data{
     pub fn show(&self){
         for i in 1 .. self.datetime.len(){
             println!("{} - {}",self.datetime[i],self.close[i]);
+        }
+    }
+    pub fn slice(&self, i: usize) -> Data {
+        Data {
+            ticker: self.ticker.clone(),
+            datetime: self.datetime[..i].to_vec(),
+            open: self.open[..i].to_vec(),
+            high: self.high[..i].to_vec(),
+            low: self.low[..i].to_vec(),
+            close: self.close[..i].to_vec(),
+            volume: self.volume[..i].to_vec(),
         }
     }
 }

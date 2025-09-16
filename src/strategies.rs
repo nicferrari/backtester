@@ -5,6 +5,7 @@ use crate::orders::Order::{BUY,SHORTSELL,NULL};
 use std::error::Error;
 use crate::ta::{Indicator,sma,rsi};
 use serde::{Serialize};
+use serde::de::Unexpected::Str;
 
 /// Struct to hold vector of choices and indicators<BR>
 /// There is no specific constructor<BR>
@@ -61,6 +62,7 @@ impl Strategy{
             indicator,
         }
     }
+    /*
     pub fn to_csv(&self, filename:&str)->Result<(),Box<dyn Error>>{
         let mut wrt = Writer::from_path(filename)?;
         let choices_transpose:Vec<Vec<String>>= self.choices.iter().map(|e|vec![e.clone().to_string().to_string()]).collect();
@@ -69,6 +71,25 @@ impl Strategy{
         wrt.serialize(col)?;}
         wrt.flush()?;
         Ok(())
+    }*/
+    pub fn skipfirst(&self)->Strategy{
+        let mut change_count = 0;
+        let mut new_choices = self.choices.clone();
+        let indicator=self.indicator.clone();
+        for i in 1..self.choices.len(){
+            if self.choices()[i]!=self.choices()[i-1]{
+                change_count += 1;
+            }
+            if change_count<2{
+                new_choices[i]=Order::NULL;
+            }
+            else { new_choices[i]=self.choices[i] }
+        }
+        Strategy{
+            name:self.name.clone()+"_skip",
+            choices:new_choices,
+            indicator,
+        }
     }
 }
 

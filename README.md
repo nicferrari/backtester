@@ -17,7 +17,7 @@ use rs_backtester::strategies::{sma_cross};
 use rs_backtester::report::{report};
 ```
 - Define an instance of the Data class. Market data can be retrieved either through yahoo-finance or read from
-a CSV file (OHLC format, Volume is not uploaded)
+a CSV file
 ```rust
 let quotes = Data::load("GOOG.csv","GOOG")?;
 ```
@@ -63,7 +63,7 @@ let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),1
 <HR>
 Check the examples folder for more!
 <br>
-<br>
+
 <HR>
 ## Disclaimer <br>
 This software is provided for educational and research purposes only.<br>

@@ -21,7 +21,9 @@ impl BacktestNr for Vec<Backtest>{
         print!("{}",format!("{:>width$}","Trades #",width=20));
         print!("{}",format!("{:>width$}","Win Rate [%]",width=20));
         print!("{}",format!("{:>width$}","Best Trade [%]",width=20));
-        println!("{}",format!("{:>width$}","Worst Trade [%]",width=20));
+        print!("{}",format!("{:>width$}","Worst Trade [%]",width=20));
+        print!("{}",format!("{:>width$}","Max Drawdown [%]",width=20));
+        println!("{}",format!("{:>width$}","Sharpe Ratio",width=20));
         for i in self.iter(){
             let equity_final = i.position().last().unwrap()*i.quotes().close().last().unwrap()+i.account().last().unwrap();
             let ret = (equity_final-100000.)/100000.;
@@ -69,7 +71,29 @@ impl BacktestNr for Vec<Backtest>{
             print!("{}",format!("{:>width$}", trade_count, width = 20));
             print!("{}",format!("{:>width$}",format!("{:.2}%",n_win_trades as f64/trade_count as f64 *100.),width=20));
             print!("{}",format!("{:>width$}",format!("{:.2}%",max_profit*100.),width=20));
-            println!("{}",format!("{:>width$}",format!("{:.2}%",max_loss*100.),width=20));
+            print!("{}",format!("{:>width$}",format!("{:.2}%",max_loss*100.),width=20));
+
+            //max drawdown calculations
+            let networths:Vec<f64> = (i.account().iter().zip(i.quotes().clone().close)).zip(i.position()).map(|((a,b),c)|a+b*c).collect();
+            let mut peak = networths[0];
+            let max_drawdown = networths
+                .iter()
+                .map(|&v| {
+                    if v > peak {
+                        peak = v;
+                    }
+                    (peak - v) / peak
+                })
+                .fold(0.0, |max_dd, dd| dd.max(max_dd));
+            print!("{}",format!("{:>width$}",format!("{:.2}%",max_drawdown*100.),width=20));
+
+            let returns:Vec<f64> = networths.windows(2).map(|w|(w[1]/w[0]).ln()).collect();
+            let rf = 0.00;
+            let excess: Vec<f64> = returns.iter().map(|r| r - rf).collect();
+            let mean = excess.iter().sum::<f64>() / excess.len() as f64;
+            let std = (excess.iter().map(|r| (r - mean).powi(2)).sum::<f64>() / (excess.len() as f64 - 1.0)).sqrt();
+            let sharpe = mean / std;
+            println!("{}",format!("{:>width$}",format!("{:.3}",sharpe*252f64.sqrt()),width=20));
         }
     }
 }

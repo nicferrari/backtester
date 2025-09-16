@@ -8,5 +8,6 @@ pub mod ta;
 pub mod report;
 pub mod utilities;
 pub mod trades;
+pub mod stateful;
 
 pub use errors::{Result};

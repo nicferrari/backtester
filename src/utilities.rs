@@ -20,7 +20,7 @@ pub fn serialize_to_csv<T: SerializeAsCsv>(data: &T, file_path: &str) -> Result<
 
 impl SerializeAsCsv for Data {
     fn to_csv(&self, writer: &mut Writer<File>) -> Result<(), Box<dyn Error>> {
-        writer.serialize(("ticker","date","open","high","low","close")).expect("couldn't write csv");
+        writer.serialize(("ticker","date","open","high","low","close","volume")).expect("couldn't write csv");
         for i in 0..self.datetime.len() {
             writer.write_record(&[
                 self.ticker.clone(),
@@ -29,6 +29,7 @@ impl SerializeAsCsv for Data {
                 self.high[i].to_string(),
                 self.low[i].to_string(),
                 self.close[i].to_string(),
+                self.volume[i].to_string(),
             ])?;
         }
         Ok(())
