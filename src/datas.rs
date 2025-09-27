@@ -83,7 +83,7 @@ impl Data{
         wrt.flush().expect("cannot write file");
         Ok(())
     }
-    ///load data from csv OHLC (no volume) format at specified path
+    ///load data from csv OHLC format at specified path
     pub fn load(path:&str, ticker:&str)->Result<Self,Box<dyn Error>>{
         let path2 = env::current_dir();
         let mut rdr = csv::Reader::from_path(path).expect(&format!("couldn't read file in {:?}",path2));

@@ -11,7 +11,7 @@ pub fn main()->Result<(),Box<dyn Error>>{
     //call with optional --filename="xxx.csv"
     //fallback to "GOOGLE.csv" which should be in directory
     let args:Vec<String> = args().collect();
-    let fallback_file = "GOOGLE.csv";
+    let fallback_file = "test_data//NVDA.csv";
     let mut filename = fallback_file;
     for arg in &args{
         if arg.starts_with("--filename="){
@@ -20,7 +20,7 @@ pub fn main()->Result<(),Box<dyn Error>>{
     }
     let path = env::current_dir()?;
     println!("Loading filename = {:?}",path.into_os_string().into_string().unwrap()+"\\"+filename);
-    let quotes = Data::load(filename,"GOOG")?;
+    let quotes = Data::load(filename,"NVDA")?;
     let sma_cross = sma_cross(quotes.clone(),10,20);
     let sma = simple_sma(quotes.clone(),10);
     let rsi_strategy = rsi_strategy(quotes.clone(),15);
