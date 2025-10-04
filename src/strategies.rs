@@ -23,6 +23,7 @@ impl Strategy{
     }
     pub fn name(&self)->&String{ return &self.name;}
     pub fn indicator(&self)->Option<Vec<Vec<f64>>>{ return self.indicator.clone();}
+    ///invert strategy (LONG->SHORT and viceversa)
     pub fn invert(&self) ->Self{
         let length = self.choices.len();
         let mut inv_choices = self.choices.clone();
@@ -72,6 +73,7 @@ impl Strategy{
         wrt.flush()?;
         Ok(())
     }*/
+    ///skip first signal
     pub fn skipfirst(&self)->Strategy{
         let mut change_count = 0;
         let mut new_choices = self.choices.clone();

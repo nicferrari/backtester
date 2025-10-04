@@ -9,5 +9,6 @@ pub mod report;
 pub mod utilities;
 pub mod trades;
 pub mod stateful;
+pub mod utilities2;
 
 pub use errors::{Result};
