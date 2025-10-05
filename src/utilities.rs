@@ -1,28 +1,99 @@
-use csv::Writer;
-use std::error::Error;
-use std::fs::File;
 use crate::datas::Data;
 use crate::strategies::Strategy;
 
-// Define a trait for custom data structures
 pub trait SerializeAsCsv {
-    fn to_csv(&self, writer: &mut Writer<std::fs::File>) -> Result<(), Box<dyn Error>>;
+    fn headers(&self) -> Vec<String>;
+    fn to_rows(&self) -> Vec<Vec<String>>;
+    ///wrapper function
+    fn to_csv(&self, file_path: &str)-> Result<(), Box<dyn Error>>;
 }
 
+use csv::Writer;
+use std::error::Error;
 
-// General function to serialize any type that implements SerializeAsCsv
-pub fn serialize_to_csv<T: SerializeAsCsv>(data: &T, file_path: &str) -> Result<(), Box<dyn Error>> {
+pub fn write_combined_csv(file_path: &str, datasets: &[&dyn SerializeAsCsv]) -> Result<(), Box<dyn Error>> {
+    let mut all_headers = Vec::new();
+    let mut all_rows: Vec<Vec<String>> = Vec::new();
+
+    // Collect headers
+    for dataset in datasets {
+        all_headers.extend(dataset.headers());
+    }
+
+    // Determine max row count
+    let max_len = datasets.iter().map(|d| d.to_rows().len()).max().unwrap_or(0);
+
+    // Collect rows
+    for i in 0..max_len {
+        let mut row = Vec::new();
+        for dataset in datasets {
+            let rows = dataset.to_rows();
+            if let Some(r) = rows.get(i) {
+                row.extend(r.clone());
+            } else {
+                row.extend(vec!["".to_string(); dataset.headers().len()]);
+            }
+        }
+        all_rows.push(row);
+    }
+
+    // Write to CSV
     let mut wtr = Writer::from_path(file_path)?;
-    data.to_csv(&mut wtr)?;
+    wtr.write_record(&all_headers)?;
+    for row in all_rows {
+        wtr.write_record(&row)?;
+    }
     wtr.flush()?;
     Ok(())
 }
 
+
+impl SerializeAsCsv for Strategy {
+    fn headers(&self) -> Vec<String> {
+        let mut header = vec!["Name".to_string(), "Choice".to_string()];
+        if let Some(indicators) = &self.indicator {
+            for i in 0..indicators.len() {
+                header.push(format!("Indicator {}", i + 1));
+            }
+        }
+        header
+    }
+
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows = Vec::new();
+        if let Some(indicators) = &self.indicator {
+            for i in 0..self.choices.len() {
+                let mut row = vec![self.name.clone(), self.choices[i].to_string().parse().unwrap()];
+                row.extend(indicators.iter().map(|ind| ind[i].to_string()));
+                rows.push(row);
+            }
+        }
+        rows
+    }
+    fn to_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let datasets: Vec<&dyn SerializeAsCsv> = vec![self];
+        write_combined_csv(file_path, &datasets[..])?;
+        Ok(())
+    }
+}
+
 impl SerializeAsCsv for Data {
-    fn to_csv(&self, writer: &mut Writer<File>) -> Result<(), Box<dyn Error>> {
-        writer.serialize(("ticker","date","open","high","low","close","volume")).expect("couldn't write csv");
+    fn headers(&self) -> Vec<String> {
+        vec![
+            "ticker".to_string(),
+            "date".to_string(),
+            "open".to_string(),
+            "high".to_string(),
+            "low".to_string(),
+            "close".to_string(),
+            "volume".to_string(),
+        ]
+    }
+
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows = Vec::new();
         for i in 0..self.datetime.len() {
-            writer.write_record(&[
+            rows.push(vec![
                 self.ticker.clone(),
                 self.datetime[i].to_string(),
                 self.open[i].to_string(),
@@ -30,28 +101,13 @@ impl SerializeAsCsv for Data {
                 self.low[i].to_string(),
                 self.close[i].to_string(),
                 self.volume[i].to_string(),
-            ])?;
+            ]);
         }
-        Ok(())
+        rows
     }
-}
-
-impl SerializeAsCsv for Strategy {
-    fn to_csv(&self, writer: &mut Writer<File>) -> Result<(), Box<dyn Error>> {
-        if let Some(indicators) = self.indicator.clone() {
-            let mut header: Vec<String> = Vec::new();
-            header.push("Name".to_string());
-            header.push("Choice".to_string());
-            for (index,_) in indicators.iter().enumerate(){
-                header.push(format!("Indicator {}", index+1));
-            }
-            writer.write_record(&header)?;
-            for i in 0..self.choices.len() {
-                let mut row: Vec<String> = vec![self.name.to_string(),self.choices[i].to_string().into()];
-                row.extend(indicators.iter().map(|indicator|indicator[i].to_string()));
-                writer.write_record(&row)?;
-            }
-        }
+    fn to_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let datasets: Vec<&dyn SerializeAsCsv> = vec![self];
+        write_combined_csv(file_path, &datasets[..])?;
         Ok(())
     }
 }

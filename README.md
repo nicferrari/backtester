@@ -19,7 +19,7 @@ use rs_backtester::report::{report};
 - Define an instance of the Data class. Market data can be retrieved either through yahoo-finance or read from
 a CSV file
 ```rust
-let quotes = Data::load("GOOG.csv","GOOG")?;
+let quotes = Data::load("test_data//NVDA.csv","NVDA")?;
 ```
 - As an alternative, you can retrieve data directly from yahoo finance with the following
 which makes use of the crate yahoo-finance-api

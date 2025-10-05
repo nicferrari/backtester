@@ -87,6 +87,7 @@ impl BacktestNr for Vec<Backtest>{
                 .fold(0.0, |max_dd, dd| dd.max(max_dd));
             print!("{}",format!("{:>width$}",format!("{:.2}%",max_drawdown*100.),width=20));
 
+            //sharpe ratio
             let returns:Vec<f64> = networths.windows(2).map(|w|(w[1]/w[0]).ln()).collect();
             let rf = 0.00;
             let excess: Vec<f64> = returns.iter().map(|r| r - rf).collect();

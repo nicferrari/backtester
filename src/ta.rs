@@ -53,5 +53,5 @@ pub fn rsi(quotes:&Data, period:usize)->Vec<f64>{
         let rsi = 100. * (sum_pos/(positive.len() as f64))/(sum_pos/(positive.len() as f64)-sum_neg/(negative.len() as f64));
         indicator.append(&mut vec![rsi;1])
     }
-    return indicator;
+    indicator
 }

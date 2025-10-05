@@ -1,11 +1,8 @@
 use std::error::Error;
-use std::fs::File;
-use csv::Writer;
 use rs_backtester::backtester::{Backtest, Commission};
 use rs_backtester::datas::Data;
 use rs_backtester::strategies::sma_cross;
-//use rs_backtester::utilities::SerializeAsCsv;
-use rs_backtester::utilities2::{write_combined_csv, SerializeAsCsv};
+use rs_backtester::utilities::{write_combined_csv, SerializeAsCsv};
 
 fn main() ->Result<(),Box<dyn Error>> {
     //example to log or debug backtesting
@@ -14,15 +11,10 @@ fn main() ->Result<(),Box<dyn Error>> {
     let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64, Commission::default());
     sma_cross_tester.log(&["date","open","high","low","close","position","account","indicator"]);
     sma_cross_tester.to_csv("sma_cross.csv")?;
-    let file = File::create("test_new_report.csv")?;
-    let mut writer = Writer::from_writer(file);
-    //sma_cross_strategy.to_csv(&mut writer)?;
-    let file2 = File::create("test_new_report2.csv")?;
-    writer = Writer::from_writer(file2);
-    //quotes.to_csv(&mut writer)?;
+    sma_cross_strategy.to_csv("strategy.csv")?;
+    quotes.to_csv("quotes.csv")?;
+    //it's possible to append multiple csv reports in a single csv
     let datasets: Vec<&dyn SerializeAsCsv> = vec![&quotes, &sma_cross_strategy];
     write_combined_csv("output.csv", &datasets[..])?;
-    let datasets2: Vec<&dyn SerializeAsCsv> = vec![&quotes];
-    write_combined_csv("output2.csv", &datasets2[..])?;
     Ok(())
 }

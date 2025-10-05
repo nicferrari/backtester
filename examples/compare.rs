@@ -20,7 +20,7 @@ pub fn main()->Result<(),Box<dyn Error>>{
     }
     let path = env::current_dir()?;
     println!("Loading filename = {:?}",path.into_os_string().into_string().unwrap()+"\\"+filename);
-    let quotes = Data::load(filename,"NVDA")?;
+    let quotes = Data::load(filename,"test_data/NVDA.csv")?;
     let sma_cross = sma_cross(quotes.clone(),10,20);
     let sma = simple_sma(quotes.clone(),10);
     let rsi_strategy = rsi_strategy(quotes.clone(),15);
