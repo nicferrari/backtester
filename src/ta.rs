@@ -10,6 +10,7 @@ pub struct Indicator{
 }
 
 impl Indicator{
+    /*
     pub fn to_csv(&self, filename:&str)->Result<(), Box<dyn Error>>{
         let mut wrt = Writer::from_path(filename)?;
         let transpose_indic:Vec<Vec<String>> = self.indicator.iter().map(|e|vec![e.clone().to_string()]).collect();
@@ -20,7 +21,7 @@ impl Indicator{
         }
         wrt.flush()?;
         Ok(())
-    }
+    }*/
     pub fn quotes(&self)->Data{
         return self.quotes.clone();
     }

@@ -63,16 +63,6 @@ impl Strategy{
             indicator,
         }
     }
-    /*
-    pub fn to_csv(&self, filename:&str)->Result<(),Box<dyn Error>>{
-        let mut wrt = Writer::from_path(filename)?;
-        let choices_transpose:Vec<Vec<String>>= self.choices.iter().map(|e|vec![e.clone().to_string().to_string()]).collect();
-        wrt.serialize("choices")?;
-        for col in choices_transpose.iter(){
-        wrt.serialize(col)?;}
-        wrt.flush()?;
-        Ok(())
-    }*/
     ///skip first signal
     pub fn skipfirst(&self)->Strategy{
         let mut change_count = 0;

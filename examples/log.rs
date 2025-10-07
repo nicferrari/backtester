@@ -3,6 +3,7 @@ use rs_backtester::backtester::{Backtest, Commission};
 use rs_backtester::datas::Data;
 use rs_backtester::strategies::sma_cross;
 use rs_backtester::utilities::{write_combined_csv, SerializeAsCsv};
+use rs_backtester::broker::calculate;
 
 fn main() ->Result<(),Box<dyn Error>> {
     //example to log or debug backtesting
@@ -14,7 +15,12 @@ fn main() ->Result<(),Box<dyn Error>> {
     sma_cross_strategy.to_csv("strategy.csv")?;
     quotes.to_csv("quotes.csv")?;
     //it's possible to append multiple csv reports in a single csv
-    let datasets: Vec<&dyn SerializeAsCsv> = vec![&quotes, &sma_cross_strategy];
+
+    let broker = calculate(sma_cross_strategy.clone(), quotes.clone());
+
+    let datasets: Vec<&dyn SerializeAsCsv> = vec![&quotes, &sma_cross_strategy, &broker];
+    broker.to_csv("broker.csv")?;
+
     write_combined_csv("output.csv", &datasets[..])?;
     Ok(())
 }

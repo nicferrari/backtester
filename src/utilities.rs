@@ -10,6 +10,7 @@ pub trait SerializeAsCsv {
 
 use csv::Writer;
 use std::error::Error;
+use crate::broker::Broker;
 
 pub fn write_combined_csv(file_path: &str, datasets: &[&dyn SerializeAsCsv]) -> Result<(), Box<dyn Error>> {
     let mut all_headers = Vec::new();
@@ -102,6 +103,25 @@ impl SerializeAsCsv for Data {
                 self.close[i].to_string(),
                 self.volume[i].to_string(),
             ]);
+        }
+        rows
+    }
+    fn to_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let datasets: Vec<&dyn SerializeAsCsv> = vec![self];
+        write_combined_csv(file_path, &datasets[..])?;
+        Ok(())
+    }
+}
+
+impl SerializeAsCsv for Broker{
+    fn headers(&self) -> Vec<String> {
+        vec!["Execution".to_string(),"Status".to_string(),"Available".to_string(),"Positions".to_string(),"Account".to_string()]
+    }
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows = Vec::new();
+        for i in 0..self.execution.len(){
+           rows.push(vec![self.execution[i].to_string(), self.status[i].to_string(), self.available[i].to_string(),
+           self.position[i].to_string(),self.account[i].to_string()]);
         }
         rows
     }
