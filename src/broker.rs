@@ -45,7 +45,7 @@ pub struct Broker{
 
 pub fn calculate(strategy:Strategy, quotes:Data) ->Broker{
     let mut orders:Vec<Execution> = std::iter::once(Execution::No).chain(
-        strategy.choices.iter().zip(strategy.choices.iter().skip(1)).map(|(prev,curr)| if curr!=prev{Execution::AtOpen(2)} else {Execution::No})).collect();
+        strategy.choices.iter().zip(strategy.choices.iter().skip(1)).map(|(prev,curr)| if curr!=prev{Execution::AtOpen(1)} else {Execution::No})).collect();
     let mut carry: Option<u32> = None;
     let mut orders_delayed = Vec::with_capacity(orders.len());
     for val in orders {

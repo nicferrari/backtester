@@ -1,11 +1,15 @@
+use std::mem::take;
 use chrono::{DateTime, FixedOffset};
 use crate::backtester::Backtest;
+use crate::broker::{Broker, Status};
+use crate::datas::Data;
 use crate::orders::Order;
+use crate::strategies::Strategy;
 
 pub struct TradeList{
     trades:Vec<Trade>,
 }
-#[derive(Debug)]
+#[derive(Debug, PartialOrd, PartialEq)]
 pub struct Trade{
     open_date:DateTime<FixedOffset>,
     close_date:DateTime<FixedOffset>,
@@ -76,4 +80,38 @@ pub fn trade_list(backtest: Backtest)->TradeList{
         trades[i].pl, trades[i].pl_net);
     }
     TradeList{trades}
+}
+
+pub fn trade_list_from_broker (broker: Broker, quotes: Data, strategy: Strategy)->TradeList{
+    //let mut trades:Vec<Trade> = Vec::new();
+    let indices:Vec<usize> = broker.status.iter().enumerate().filter_map(|(i,v)| if *v == Status::Executed {Some(i)} else {None}).collect();
+    let mut pairs:Vec<(usize,usize)> = indices.windows(2).map(|w|(w[0],w[1])).collect();
+    //force close last trade if open
+    if let Some(&last_match) = indices.last(){pairs.push((last_match,broker.status.len()-1))};
+    let trades:Vec<Trade> = pairs.iter().map(|&(i,j)|Trade{
+        open_date:quotes.datetime[i],
+        close_date:quotes.datetime[j],
+        order:strategy.choices[i-1],// todo:adapt to slippage
+        open_price:quotes.open[i],
+        close_price:quotes.open[j],
+        pl:strategy.choices[i-1].sign() as f64 *(quotes.open[j]/quotes.open[i]-1.)*100.,
+        pl_net:0.,//todo: remove (not necessary)
+    }).collect();
+    TradeList{trades}
+}
+
+pub fn report_trade(trades_list: TradeList){
+    for i in 0..trades_list.trades.len(){
+        println!("Trade {:} opened at {:?} closed at {:?}, order = {:?} executed at {:.2} and closed at {:.2}, p&l = {:.2}%  net = {:.2}%"
+                 ,i+1,trades_list.trades[i].open_date.date_naive(),trades_list.trades[i].close_date.date_naive(), trades_list.trades[i].order, trades_list.trades[i].open_price, trades_list.trades[i].close_price,
+                 trades_list.trades[i].pl, trades_list.trades[i].pl_net);
+    }
+    let nr_trades = trades_list.trades.len();
+    let win_rate = (trades_list.trades.iter().filter(|&i|i.pl>0.).count() as f64)/(nr_trades as f64)*100.;
+    let best_trade = trades_list.trades.iter().max_by(|a,b|a.pl.partial_cmp(&b.pl).unwrap());
+    let worst_trade = trades_list.trades.iter().min_by(|a,b|a.pl.partial_cmp(&b.pl).unwrap());
+    println!("Trades # = {:}",nr_trades);
+    println!("Win rate = {:.2}%",win_rate);
+    println!("Best trade = {:.2}%",best_trade.unwrap().pl);
+    println!("Worst trade = {:.2}%",worst_trade.unwrap().pl);
 }

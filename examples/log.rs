@@ -4,6 +4,8 @@ use rs_backtester::datas::Data;
 use rs_backtester::strategies::sma_cross;
 use rs_backtester::utilities::{write_combined_csv, SerializeAsCsv};
 use rs_backtester::broker::calculate;
+use rs_backtester::report::{report};
+use rs_backtester::trades::{report_trade, trade_list, trade_list_from_broker};
 
 fn main() ->Result<(),Box<dyn Error>> {
     //example to log or debug backtesting
@@ -22,5 +24,10 @@ fn main() ->Result<(),Box<dyn Error>> {
     broker.to_csv("broker.csv")?;
 
     write_combined_csv("output.csv", &datasets[..])?;
+    report(sma_cross_tester.clone());
+    trade_list(sma_cross_tester);
+    println!("-----------------");
+    let trade_list = trade_list_from_broker(broker,quotes,sma_cross_strategy);
+    report_trade(trade_list);
     Ok(())
 }
