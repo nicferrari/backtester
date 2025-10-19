@@ -5,7 +5,7 @@ use rs_backtester::strategies::sma_cross;
 use rs_backtester::utilities::{write_combined_csv, SerializeAsCsv};
 use rs_backtester::broker::calculate;
 use rs_backtester::report::{report};
-use rs_backtester::trades::{report_trade, trade_list, trade_list_from_broker};
+use rs_backtester::trades::{report_trade, trade_indices_from_broker, trade_list, trade_list_from_broker};
 
 fn main() ->Result<(),Box<dyn Error>> {
     //example to log or debug backtesting
@@ -27,7 +27,12 @@ fn main() ->Result<(),Box<dyn Error>> {
     report(sma_cross_tester.clone());
     trade_list(sma_cross_tester);
     println!("-----------------");
-    let trade_list = trade_list_from_broker(broker,quotes,sma_cross_strategy);
+    let trade_list = trade_list_from_broker(broker.clone(),quotes.clone(),sma_cross_strategy.clone());
     report_trade(trade_list);
+    let trade_indices = trade_indices_from_broker(broker.clone());
+    //trade_indices.indices.first().unwrap().print(quotes.clone(),sma_cross_strategy.clone());
+    trade_indices.print_all_trades(quotes.clone(),sma_cross_strategy.clone());
+    trade_indices.print(quotes,sma_cross_strategy);
+    broker.print_stats();
     Ok(())
 }

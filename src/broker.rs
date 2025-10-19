@@ -1,15 +1,13 @@
-use std::fmt::format;
-use std::ptr::slice_from_raw_parts;
+use yahoo_finance_api::time::ext::NumericalDuration;
 use crate::broker::Execution::AtOpen;
 use crate::datas::Data;
-use crate::orders::Order;
 use crate::strategies::Strategy;
-
-pub enum Execution {
+#[derive(Clone)]
+pub enum Execution{
     AtOpen(u32),
     No,
 }
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum Status{
     Sent,
     Executed,
@@ -34,7 +32,7 @@ impl Status{
         }
     }
 }
-
+#[derive(Clone)]
 pub struct Broker{
     pub execution: Vec<Execution>,
     pub status: Vec<Status>,
@@ -90,4 +88,35 @@ pub fn calculate(strategy:Strategy, quotes:Data) ->Broker{
         }
     }
     Broker{execution:orders_delayed,status, available:availables, account:accounts, position:positions}
+}
+
+impl Broker{
+    pub fn print_stats(&self){
+        println!("\nBroker stats");
+        println!("Return = {:.2}%", (self.available.last().unwrap()/self.available.first().unwrap()).ln()*100.); //todo: now calculated on open not close
+        let exposure_time = self.position.iter().filter(|&&i|i!=0).count() as f64/self.position.len() as f64;
+        println!("Exposure time = {:.2}%",exposure_time*100.);
+
+        //sharpe ratio
+        let returns:Vec<f64> = self.available.windows(2).map(|w|(w[1]/w[0]).ln()).collect();
+        let rf = 0.00;
+        let excess: Vec<f64> = returns.iter().map(|r| r - rf).collect();
+        let mean = excess.iter().sum::<f64>() / excess.len() as f64;
+        let std = (excess.iter().map(|r| (r - mean).powi(2)).sum::<f64>() / (excess.len() as f64 - 1.0)).sqrt();
+        let sharpe = mean / std;
+        println!("Sharpe rate = {:.2}",sharpe*252f64.sqrt());
+
+        //max drawdown calculations
+        let mut peak = self.available.first().unwrap();
+        let max_drawdown = self.available
+            .iter()
+            .map(|v| {
+                if v > peak {
+                    peak = v;
+                }
+                (peak - v) / peak
+            })
+            .fold(0.0, |max_dd, dd| dd.max(max_dd));
+        println!("Max drawdown = {:.2}%",max_drawdown*100.);
+    }
 }
