@@ -13,9 +13,12 @@ impl BacktestNr for Backtest{
 
 impl BacktestNr for Vec<Backtest>{
     fn uniquereport(&self) {
-        println!("Backtesting period {:?} - {:?} - ticker = {}", self.first().unwrap().quotes().timestamps().first().unwrap().date_naive(),
+        //println!("{}","_".repeat(180));
+        println!("\x1b[1;34mBacktesting period {:?} - {:?} - ticker = {}\x1b[0m", self.first().unwrap().quotes().timestamps().first().unwrap().date_naive(),
                  self.first().unwrap().quotes().timestamps().last().unwrap().date_naive(),self.first().unwrap().quotes().ticker());
-        print!("{}",format!("{:<width$}","Strategies",width=20));
+        println!("{}","_".repeat(180));
+        //print!("{}",format!("{:<width$}","Strategies",width=20));
+        print!("{:<width$}","Strategies",width=20);
         print!("{}",format!("{:>width$}","Return",width=20));
         print!("{}",format!("{:>width$}","Exposure Time %",width=20));
         print!("{}",format!("{:>width$}","Trades #",width=20));
@@ -24,6 +27,7 @@ impl BacktestNr for Vec<Backtest>{
         print!("{}",format!("{:>width$}","Worst Trade [%]",width=20));
         print!("{}",format!("{:>width$}","Max Drawdown [%]",width=20));
         println!("{}",format!("{:>width$}","Sharpe Ratio",width=20));
+        println!("{}","_".repeat(180));
         for i in self.iter(){
             let equity_final = i.position().last().unwrap()*i.quotes().close().last().unwrap()+i.account().last().unwrap();
             let ret = (equity_final-100000.)/100000.;
@@ -96,6 +100,7 @@ impl BacktestNr for Vec<Backtest>{
             let sharpe = mean / std;
             println!("{}",format!("{:>width$}",format!("{:.3}",sharpe*252f64.sqrt()),width=20));
         }
+        println!("{}","_".repeat(180));
     }
 }
 

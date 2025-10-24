@@ -4,8 +4,10 @@ use rs_backtester::datas::Data;
 use rs_backtester::strategies::sma_cross;
 use rs_backtester::utilities::{write_combined_csv, SerializeAsCsv};
 use rs_backtester::broker::calculate;
+use rs_backtester::metrics;
 use rs_backtester::report::{report};
 use rs_backtester::trades::{report_trade, trade_indices_from_broker, trade_list, trade_list_from_broker};
+use rs_backtester::metrics::Metrics;
 
 fn main() ->Result<(),Box<dyn Error>> {
     //example to log or debug backtesting
@@ -32,7 +34,12 @@ fn main() ->Result<(),Box<dyn Error>> {
     let trade_indices = trade_indices_from_broker(broker.clone());
     //trade_indices.indices.first().unwrap().print(quotes.clone(),sma_cross_strategy.clone());
     trade_indices.print_all_trades(quotes.clone(),sma_cross_strategy.clone());
-    trade_indices.print(quotes,sma_cross_strategy);
+    trade_indices.print(quotes.clone(),sma_cross_strategy.clone());
     broker.print_stats();
+    let mut metrics = Metrics::default();
+    trade_indices.calculate_metrics(&mut metrics, quotes.clone(), sma_cross_strategy.clone());
+    metrics.print_horizontally();
+    broker.calculate_metrics(&mut metrics);
+    metrics.print_horizontally();
     Ok(())
 }

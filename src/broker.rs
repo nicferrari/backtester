@@ -1,6 +1,7 @@
 use yahoo_finance_api::time::ext::NumericalDuration;
 use crate::broker::Execution::AtOpen;
 use crate::datas::Data;
+use crate::metrics::Metrics;
 use crate::strategies::Strategy;
 #[derive(Clone)]
 pub enum Execution{
@@ -118,5 +119,10 @@ impl Broker{
             })
             .fold(0.0, |max_dd, dd| dd.max(max_dd));
         println!("Max drawdown = {:.2}%",max_drawdown*100.);
+    }
+    pub fn calculate_metrics(&self, metrics: &mut Metrics){
+        metrics.bt_return = Some((self.available.last().unwrap()/self.available.first().unwrap()).ln()*100.);
+        let exposure_time = self.position.iter().filter(|&&i|i!=0).count() as f64/self.position.len() as f64;
+        metrics.exposure_time = Some(exposure_time);
     }
 }

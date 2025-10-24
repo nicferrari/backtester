@@ -3,6 +3,7 @@ use chrono::{DateTime, Duration, FixedOffset};
 use crate::backtester::Backtest;
 use crate::broker::{Broker, Status};
 use crate::datas::Data;
+use crate::metrics::Metrics;
 use crate::orders::Order;
 use crate::strategies::Strategy;
 
@@ -184,6 +185,21 @@ impl TradesIndices{
         for i in &self.indices{
             i.print(data.clone(), strategy.clone());
         }
+    }
+    pub fn calculate_metrics(&self, metrics: &mut Metrics, data: Data, strategy: Strategy){
+        //let mut metrics = Metrics::default();
+        metrics.strategy_name = Some(strategy.clone().name);
+        metrics.trades_nr = Some(self.indices.len());
+        let max_pl = self.indices.iter().map(|t |t.calc_pl(data.clone(), strategy.clone())).reduce(f64::max).unwrap();
+        let min_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).reduce(f64::min).unwrap();
+        let win_rate = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).filter(|&i|i>0.).count() as f64/self.indices.len() as f64 ;
+        let average_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).sum::<f64>()/self.indices.len() as f64;
+        let average_duration = self.calc_duration(data.clone());
+        metrics.max_pl = Some(max_pl);
+        metrics.min_pl = Some(min_pl);
+        metrics.win_rate = Some(win_rate);
+        metrics.average_pl = Some(average_pl);
+        metrics.avg_duration = Some(average_duration);
     }
 }
 

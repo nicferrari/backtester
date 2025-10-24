@@ -10,5 +10,6 @@ pub mod trades;
 pub mod stateful;
 pub mod utilities;
 pub mod broker;
+pub mod metrics;
 
 pub use errors::{Result};
