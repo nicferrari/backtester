@@ -4,7 +4,6 @@ use rs_backtester::datas::Data;
 use rs_backtester::strategies::sma_cross;
 use rs_backtester::utilities::{write_combined_csv, SerializeAsCsv};
 use rs_backtester::broker::calculate;
-use rs_backtester::metrics;
 use rs_backtester::report::{report};
 use rs_backtester::trades::{report_trade, trade_indices_from_broker, trade_list, trade_list_from_broker};
 use rs_backtester::metrics::Metrics;

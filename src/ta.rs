@@ -1,6 +1,4 @@
 use crate::datas::Data;
-use csv::Writer;
-use std::error::Error;
 
 ///container for checking calculation of indicator vs mktdata
 #[derive(Clone)]

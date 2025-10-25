@@ -11,5 +11,6 @@ pub mod stateful;
 pub mod utilities;
 pub mod broker;
 pub mod metrics;
+pub mod backtester_new;
 
 pub use errors::{Result};

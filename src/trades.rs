@@ -1,4 +1,3 @@
-use std::cmp::min;
 use chrono::{DateTime, Duration, FixedOffset};
 use crate::backtester::Backtest;
 use crate::broker::{Broker, Status};

@@ -1,4 +1,3 @@
-use yahoo_finance_api::time::ext::NumericalDuration;
 use crate::broker::Execution::AtOpen;
 use crate::datas::Data;
 use crate::metrics::Metrics;
@@ -42,8 +41,8 @@ pub struct Broker{
     pub position:Vec<i32>,
 }
 
-pub fn calculate(strategy:Strategy, quotes:Data) ->Broker{
-    let mut orders:Vec<Execution> = std::iter::once(Execution::No).chain(
+pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
+    let orders:Vec<Execution> = std::iter::once(Execution::No).chain(
         strategy.choices.iter().zip(strategy.choices.iter().skip(1)).map(|(prev,curr)| if curr!=prev{Execution::AtOpen(1)} else {Execution::No})).collect();
     let mut carry: Option<u32> = None;
     let mut orders_delayed = Vec::with_capacity(orders.len());
@@ -78,9 +77,9 @@ pub fn calculate(strategy:Strategy, quotes:Data) ->Broker{
         }
     }
     //calculate accounts and positions
-    let mut accounts = vec![100000.;status.len()];
+    let mut accounts = vec![initial_account;status.len()];
     let mut positions = vec![0;status.len()];
-    let mut availables = vec![100000.;status.len()];
+    let mut availables = vec![initial_account;status.len()];
     for i in 0..status.len(){
         availables[i..].fill(positions[i] as f64*quotes.open[i] + accounts[i]);
         if status[i]==Status::Executed{
@@ -124,5 +123,17 @@ impl Broker{
         metrics.bt_return = Some((self.available.last().unwrap()/self.available.first().unwrap()).ln()*100.);
         let exposure_time = self.position.iter().filter(|&&i|i!=0).count() as f64/self.position.len() as f64;
         metrics.exposure_time = Some(exposure_time);
+        let mut peak = self.available.first().unwrap();
+        let max_drawdown = self.available.iter().map(|v| {
+                if v > peak { peak = v; }(peak - v) / peak }).fold(0.0, |max_dd, dd| dd.max(max_dd));
+        metrics.max_drawd = Some(max_drawdown);
+        //sharpe ratio
+        let returns:Vec<f64> = self.available.windows(2).map(|w|(w[1]/w[0]).ln()).collect();
+        let rf = 0.00;
+        let excess: Vec<f64> = returns.iter().map(|r| r - rf).collect();
+        let mean = excess.iter().sum::<f64>() / excess.len() as f64;
+        let std = (excess.iter().map(|r| (r - mean).powi(2)).sum::<f64>() / (excess.len() as f64 - 1.0)).sqrt();
+        let sharpe = mean / std;
+        metrics.sharpe = Some(sharpe);
     }
 }
