@@ -45,21 +45,15 @@ macro_rules! print_custom_row_with_headers {
     ($instance:expr, {
         $($field:ident => ($header:expr, $formatter:expr)),* $(,)?
     }) => {
-        // Header row
-        //print!("|");
         $(
             if $instance.$field.is_some() {
-                //print!(" {} |", $header);
                 print!("{:>width$}",$header,width=20);
             }
         )*
         println!();
         println!("{}","_".repeat(180));
-        // Value row
-        //print!("|");
         $(
             if let Some(val) = &$instance.$field {
-                //print!(" {} |", $formatter(val));
                 print!("{:>width$}",$formatter(val),width=20);
             }
         )*
@@ -100,7 +94,6 @@ macro_rules! print_custom_row_with_headers_aligned {
 
 impl Metrics{
     pub fn print_vertically(&self){
-        //print_defined_fields!(self, { bt_return, trades_nr});
         print_custom_fields!(self, {
             strategy_name => |v| format!("Strategy = {}", v),
             bt_return => |v| format!("Return = {:.2}%", v),
@@ -133,30 +126,34 @@ pub fn compare_metrics_horizontally(metrics: &[&Metrics]){
     }
 }
 
-macro_rules! print_row {
-    ($label:expr, $vec:expr, $field:ident, $format:expr) => {
-        print!("{:<10} |", $label);
-        for item in $vec {
-            match &item.$field {
-                Some(val) => print!($format, val),
-                None => print!("{:>15} |", "-"),
+
+macro_rules! print_field {
+    ($label:expr, $items:expr, $getter:expr, $formatter:expr, $width:expr) => {
+        print!("{:<width$} |", $label, width=TAB);
+        for item in $items {
+            match $getter(item) {
+                Some(val) => print!("{:>width$} |", $formatter(val), width = $width),
+                None => print!("{:>width$} |", "-", width = $width),
             }
         }
         println!();
     };
 }
-pub fn compare_metrics_vertically(data: &[Metrics]) {
-    println!("--- Custom Table ---");
 
-    // Custom header row
-    print!("{:<10} |", "Field");
-    for (i, _) in data.iter().enumerate() {
-        print!(" Row {:<3}       |", i);
-    }
-    println!();
 
-    // Field rows
-    print_row!("Strategy", data, strategy_name, " {:>15} |");
-    print_row!("Return", data, bt_return, " {:>15.2}% |");
-    print_row!("Trades #", data, trades_nr, " {:>15} |");
+
+pub fn compare_metrics_vertically(metrics: &[Metrics]) {
+    println!("{}","_".repeat(100));
+    print_field!("Strategy", metrics, |i:&Metrics| i.strategy_name.clone(), |s|  s, TAB);
+    print_field!("Return", metrics, |i:&Metrics| i.bt_return, |r| format!("{:.2}%", r), TAB);
+    print_field!("Exp time", metrics, |i:&Metrics| i.exposure_time, |s| format!("{:.2}%",s*100.), TAB);
+    print_field!("Trades #", metrics, |i:&Metrics| i.trades_nr, |a| a, TAB);
+    print_field!("Max P&L", metrics, |i:&Metrics| i.max_pl, |s| format!("{:.2}%",s), TAB);
+    print_field!("Min P&L", metrics, |i:&Metrics| i.min_pl, |s| format!("{:.2}%",s), TAB);
+    print_field!("Avg P&L", metrics, |i:&Metrics| i.average_pl, |s| format!("{:.2}%",s), TAB);
+    print_field!("Win rate", metrics, |i:&Metrics| i.win_rate, |s| format!("{:.2}%",s*100.), TAB);
+    print_field!("Avg dur (d)", metrics, |i:&Metrics| i.avg_duration, |s| format!("{:.2}",s), TAB);
+    print_field!("Max Drawdown", metrics, |i:&Metrics| i.max_drawd, |s| format!("{:.2}%",s*100.), TAB);
+    print_field!("Sharpe r", metrics, |i:&Metrics| i.sharpe, |s| format!("{:.2}",s*252f64.sqrt()), TAB);
+    println!("{}","_".repeat(100));
 }

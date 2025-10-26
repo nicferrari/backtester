@@ -1,24 +1,22 @@
-/*
-mod module_a;
-mod module_b;
-
-pub use module_a::use_config_a;
-pub use module_b::use_config_b;*/
 
 use once_cell::sync::Lazy;
 use std::sync::RwLock;
+use crate::broker::Execution;
+use crate::broker::Execution::AtOpen;
 
 #[derive(Debug, Clone)]
 pub struct Config {
     pub debug_mode: bool,
     pub commission_rate: f64,
+    pub execution_time:Execution,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
             debug_mode: false,
-            commission_rate: 0.05,
+            commission_rate: 0.0,
+            execution_time: AtOpen(1),
         }
     }
 }

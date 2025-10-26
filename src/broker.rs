@@ -1,8 +1,9 @@
 use crate::broker::Execution::AtOpen;
+use crate::config::get_config;
 use crate::datas::Data;
 use crate::metrics::Metrics;
 use crate::strategies::Strategy;
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Execution{
     AtOpen(u32),
     No,
@@ -42,8 +43,10 @@ pub struct Broker{
 }
 
 pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
+    let cfg = get_config();
     let orders:Vec<Execution> = std::iter::once(Execution::No).chain(
-        strategy.choices.iter().zip(strategy.choices.iter().skip(1)).map(|(prev,curr)| if curr!=prev{Execution::AtOpen(1)} else {Execution::No})).collect();
+        //strategy.choices.iter().zip(strategy.choices.iter().skip(1)).map(|(prev,curr)| if curr!=prev{Execution::AtOpen(1)} else {Execution::No})).collect();
+        strategy.choices.iter().zip(strategy.choices.iter().skip(1)).map(|(prev,curr)| if curr!=prev{cfg.execution_time.clone()} else {Execution::No})).collect();
     let mut carry: Option<u32> = None;
     let mut orders_delayed = Vec::with_capacity(orders.len());
     for val in orders {
