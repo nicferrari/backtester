@@ -12,5 +12,6 @@ pub mod utilities;
 pub mod broker;
 pub mod metrics;
 pub mod backtester_new;
+pub mod config;
 
 pub use errors::{Result};

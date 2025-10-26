@@ -127,7 +127,7 @@ impl Metrics{
     }
 }
 
-pub fn compare_metrics_horizontally(metrics: &[Metrics]){
+pub fn compare_metrics_horizontally(metrics: &[&Metrics]){
     for item in metrics{
         item.print_horizontally();
     }
