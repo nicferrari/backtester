@@ -15,6 +15,7 @@ pub struct Metrics {
     pub average_pl:Option<f64>,
     pub win_rate:Option<f64>,
     pub avg_duration:Option<f64>,
+    //todo! add trade indices and calculate automatically during backtest initialization
 }
 
 

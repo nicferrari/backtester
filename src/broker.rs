@@ -1,5 +1,5 @@
 use crate::broker::Execution::AtOpen;
-use crate::config::get_config;
+use crate::config::{Config, get_config};
 use crate::datas::Data;
 use crate::metrics::Metrics;
 use crate::strategies::Strategy;
@@ -8,6 +8,16 @@ pub enum Execution{
     AtOpen(u32),
     No,
 }
+
+impl Execution{
+    pub fn to_quotes(&self, data: Data, index:usize)->f64{
+        match self {
+            AtOpen(_) => data.open[index],
+            _ => 0.,
+        }
+    }
+}
+
 #[derive(PartialEq, Clone)]
 pub enum Status{
     Sent,
@@ -40,6 +50,7 @@ pub struct Broker{
     pub available:Vec<f64>,
     pub account:Vec<f64>,
     pub position:Vec<i32>,
+    pub execution_price:Vec<f64>,
 }
 
 pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
@@ -83,14 +94,25 @@ pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
     let mut accounts = vec![initial_account;status.len()];
     let mut positions = vec![0;status.len()];
     let mut availables = vec![initial_account;status.len()];
+    let mut exec_prices = vec![0.;status.len()];
+    let cfg = get_config();
     for i in 0..status.len(){
-        availables[i..].fill(positions[i] as f64*quotes.open[i] + accounts[i]);
+        availables[i..].fill(positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i) + accounts[i]);//todo! check the logic: available now depends on time of execution
+        //availables[i..].fill(positions[i] as f64*quotes.open[i] + accounts[i]);
+        /*
         if status[i]==Status::Executed{
             positions[i..].fill(((strategy.choices[i].sign() as f64)*availables[i]/quotes.open[i]) as i32);
             accounts[i..].fill(availables[i]-positions[i] as f64*quotes.open[i])
         }
+        */
+        if status[i]==Status::Executed{
+            positions[i..].fill(((strategy.choices[i].sign() as f64)*availables[i]/cfg.execution_time.to_quotes(quotes.clone(),i)) as i32);
+            exec_prices[i..].fill(cfg.execution_time.to_quotes(quotes.clone(),i));
+            accounts[i..].fill(availables[i]-positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i))
+        }
+
     }
-    Broker{execution:orders_delayed,status, available:availables, account:accounts, position:positions}
+    Broker{execution:orders_delayed,status, available:availables, account:accounts, position:positions, execution_price:exec_prices}
 }
 
 impl Broker{

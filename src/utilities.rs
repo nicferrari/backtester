@@ -115,12 +115,12 @@ impl SerializeAsCsv for Data {
 
 impl SerializeAsCsv for Broker{
     fn headers(&self) -> Vec<String> {
-        vec!["Execution".to_string(),"Status".to_string(),"Available".to_string(),"Positions".to_string(),"Account".to_string()]
+        vec!["Execution".to_string(),"Status".to_string(),"Execution price".to_string(), "Available".to_string(),"Positions".to_string(),"Account".to_string()]
     }
     fn to_rows(&self) -> Vec<Vec<String>> {
         let mut rows = Vec::new();
         for i in 0..self.execution.len(){
-           rows.push(vec![self.execution[i].to_string(), self.status[i].to_string(), self.available[i].to_string(),
+           rows.push(vec![self.execution[i].to_string(), self.status[i].to_string(), self.execution_price[i].to_string(), self.available[i].to_string(),
            self.position[i].to_string(),self.account[i].to_string()]);
         }
         rows
