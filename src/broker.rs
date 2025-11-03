@@ -48,9 +48,12 @@ pub struct Broker{
     pub execution: Vec<Execution>,
     pub status: Vec<Status>,
     pub available:Vec<f64>,
-    pub account:Vec<f64>,
     pub position:Vec<i32>,
-    pub execution_price:Vec<f64>,
+    pub invested:Vec<f64>,
+    pub fees:Vec<f64>,
+    pub account:Vec<f64>,
+    pub cash:Vec<f64>,
+    pub mtm:Vec<f64>,
 }
 
 pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
@@ -94,10 +97,14 @@ pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
     let mut accounts = vec![initial_account;status.len()];
     let mut positions = vec![0;status.len()];
     let mut availables = vec![initial_account;status.len()];
-    let mut exec_prices = vec![0.;status.len()];
+    let mut fees = vec![0.;status.len()];
+    let mut invested = vec![0.;status.len()];
+    let mut mtm = vec![0.;status.len()];
+    let mut cash = vec![0.;status.len()];
     let cfg = get_config();
     for i in 0..status.len(){
-        availables[i..].fill(positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i) + accounts[i]);//todo! check the logic: available now depends on time of execution
+        //availables[i..].fill(positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i) + accounts[i]);//
+        availables[i..].fill(positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i)+accounts[i]);
         //availables[i..].fill(positions[i] as f64*quotes.open[i] + accounts[i]);
         /*
         if status[i]==Status::Executed{
@@ -106,13 +113,18 @@ pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
         }
         */
         if status[i]==Status::Executed{
-            positions[i..].fill(((strategy.choices[i].sign() as f64)*availables[i]/cfg.execution_time.to_quotes(quotes.clone(),i)) as i32);
-            exec_prices[i..].fill(cfg.execution_time.to_quotes(quotes.clone(),i));
-            accounts[i..].fill(availables[i]-positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i))
+            fees[i] = (positions[i] as f64).abs()*cfg.execution_time.to_quotes(quotes.clone(),i)*cfg.commission_rate;
+            positions[i..].fill(((strategy.choices[i].sign() as f64)*(availables[i]-fees[i])/cfg.execution_time.to_quotes(quotes.clone(),i)/(1.+cfg.commission_rate)) as i32);
+            invested[i..].fill(positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i));
+            fees[i]+=invested[i].abs()*cfg.commission_rate;
+            accounts[i..].fill(availables[i]-invested[i]-fees[i]);
+            cash[i..].fill(availables[i]-invested[i].abs()-fees[i]);
+            //accounts[i..].fill(availables[i]-positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i))
         }
-
+        mtm[i]=positions[i] as f64 * cfg.execution_time.to_quotes(quotes.clone(),i) - invested[i];//todo! mtm is now calculated on execution_time: do on close?
     }
-    Broker{execution:orders_delayed,status, available:availables, account:accounts, position:positions, execution_price:exec_prices}
+    Broker{execution:orders_delayed,status, available:availables, position:positions,
+        invested:invested, fees:fees, account:accounts, cash:cash,mtm:mtm}
 }
 
 impl Broker{

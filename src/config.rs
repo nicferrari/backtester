@@ -15,7 +15,7 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             debug_mode: false,
-            commission_rate: 0.0,
+            commission_rate: 0.,
             execution_time: AtOpen(1),
         }
     }
