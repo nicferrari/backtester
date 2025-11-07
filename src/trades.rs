@@ -1,6 +1,7 @@
 use chrono::{DateTime, Duration, FixedOffset};
 use crate::backtester::Backtest;
 use crate::broker::{Broker, Status};
+use crate::config::{Config, get_config};
 use crate::datas::Data;
 use crate::metrics::Metrics;
 use crate::orders::Order;
@@ -149,52 +150,57 @@ pub fn trade_indices_from_broker(broker: Broker)->TradesIndices{
 }
 
 impl TradeIndices{
-    pub fn print(&self, data:Data, strategy: Strategy){
+    pub fn print(&self, data:Data, strategy: Strategy, cfg:Config){
         print!("Trade {} - {:?}/{:?}",self.position+1,data.datetime[self.open_index].date_naive(),data.datetime[self.close_index].date_naive());
         print!(" ({} days)",self.calc_duration(data.clone()));
         print!(", {:?}",strategy.choices[self.open_index-1]);//todo! should be based on broker not on strategy and correct timing
         print!(" {:.2}/{:.2}",data.open[self.open_index],data.open[self.close_index]);
-        print!(", p&l {:.2}%",self.calc_pl(data.clone(),strategy.clone()));
-        let max_pl = ((data.high[self.open_index..=self.close_index].iter().copied().reduce(f64::max).unwrap())/data.open[self.open_index]-1.)*100.*strategy.choices[self.open_index-1].sign() as f64;
-        let min_pl = ((data.low[self.open_index..=self.close_index].iter().copied().reduce(f64::min).unwrap())/data.open[self.open_index]-1.)*100.*strategy.choices[self.open_index-1].sign() as f64;
+        print!(", p&l {:.2}%",self.calc_pl(data.clone(),strategy.clone(),cfg.clone()));
+//        let max_pl = ((data.high[self.open_index..=self.close_index].iter().copied().reduce(f64::max).unwrap())/data.open[self.open_index]/(1.+cfg.commission_rate)).ln()*100.*strategy.choices[self.open_index-1].sign() as f64;
+//        let min_pl = ((data.low[self.open_index..=self.close_index].iter().copied().reduce(f64::min).unwrap())/data.open[self.open_index]/(1.+cfg.commission_rate)).ln()*100.*strategy.choices[self.open_index-1].sign() as f64;
+        let max_pl = strategy.choices[self.open_index - 1].sign() as f64*((data.high[self.open_index..=self.close_index].iter().copied().reduce(f64::max).unwrap())/data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100. as f64;
+        let min_pl = strategy.choices[self.open_index - 1].sign() as f64*((data.low[self.open_index..=self.close_index].iter().copied().reduce(f64::min).unwrap())/data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100. as f64;
+
         print!(" (max {:.2}% min {:.2}%)",max_pl.max(min_pl),max_pl.min(min_pl));
         println!();
     }
-    fn calc_pl(&self, data: Data, strategy: Strategy) -> f64 {
+    fn calc_pl(&self, data: Data, strategy: Strategy, cfg:Config) -> f64 {
         //strategy.choices[self.open_index-1].sign() as f64 *(data.open[self.close_index]/data.open[self.open_index]-1.)*100.
-        strategy.choices[self.open_index-1].sign() as f64 *(data.open[self.close_index]/data.open[self.open_index]).ln()*100.
+        //let cfg = get_config();
+        strategy.choices[self.open_index-1].sign() as f64 *(data.open[self.close_index]/data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100.
     }
 }
 
 impl TradesIndices{
-    pub fn print(&self, data: Data, strategy: Strategy){
+    pub fn print(&self, data: Data, strategy: Strategy, cfg:Config){
         println!("\nTrade stats");
         println!("Trades  = {}",self.indices.len());
-        let max_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).reduce(f64::max).unwrap();
-        let min_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).reduce(f64::min).unwrap();
-        let win_rate = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).filter(|&i|i>0.).count() as f64/self.indices.len() as f64 ;
-        let average_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).sum::<f64>()/self.indices.len() as f64 ;
+        let max_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone(),cfg.clone())).reduce(f64::max).unwrap();
+        let min_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone(),cfg.clone())).reduce(f64::min).unwrap();
+        let win_rate = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone(),cfg.clone())).filter(|&i|i>0.).count() as f64/self.indices.len() as f64 ;
+        let average_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone(),cfg.clone())).sum::<f64>()/self.indices.len() as f64 ;
         println!("Win rate = {:.2}%",win_rate*100.);
         println!("Best trade = {:.2}%",max_pl);
         println!("Worst trade = {:.2}%",min_pl);
         println!("Average p&l = {:.2}%",average_pl);
         println!("Average trade duration = {:.2} days",self.calc_duration(data.clone()));
     }
-    pub fn print_all_trades(&self, data:Data, strategy: Strategy){
+    pub fn print_all_trades(&self, data:Data, strategy: Strategy, cfg:Config){
         println!("\nTrade list");
         for i in &self.indices{
-            i.print(data.clone(), strategy.clone());
+            i.print(data.clone(), strategy.clone(), cfg.clone());
         }
     }
     pub fn calculate_metrics(&self, metrics: &mut Metrics, data: Data, strategy: Strategy){
         //let mut metrics = Metrics::default();
+        let cfg=get_config();
         metrics.ticker = Some(data.ticker.to_string());
         metrics.strategy_name = Some(strategy.clone().name);
         metrics.trades_nr = Some(self.indices.len());
-        let max_pl = self.indices.iter().map(|t |t.calc_pl(data.clone(), strategy.clone())).reduce(f64::max).unwrap();
-        let min_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).reduce(f64::min).unwrap();
-        let win_rate = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).filter(|&i|i>0.).count() as f64/self.indices.len() as f64 ;
-        let average_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone())).sum::<f64>()/self.indices.len() as f64;
+        let max_pl = self.indices.iter().map(|t |t.calc_pl(data.clone(), strategy.clone(),cfg.clone())).reduce(f64::max).unwrap();
+        let min_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone(),cfg.clone())).reduce(f64::min).unwrap();
+        let win_rate = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone(),cfg.clone())).filter(|&i|i>0.).count() as f64/self.indices.len() as f64 ;
+        let average_pl = self.indices.iter().map(|t|t.calc_pl(data.clone(), strategy.clone(),cfg.clone())).sum::<f64>()/self.indices.len() as f64;
         let average_duration = self.calc_duration(data.clone());
         metrics.max_pl = Some(max_pl);
         metrics.min_pl = Some(min_pl);

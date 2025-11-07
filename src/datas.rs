@@ -58,6 +58,7 @@ impl Data{
         let lows:Vec<f64> = quotes.iter().map(|s|s.low).collect();
         let closes:Vec<f64> = quotes.iter().map(|s|s.close).collect();
         let volumes:Vec<u64> = quotes.iter().map(|s|s.volume).collect();
+        println!("\x1b[34m{} {} data ({}) downloaded from Yahoo!",ticker, range, interval);
         Ok(Data{
             ticker:ticker.to_string(),
             datetime:yahoo_datetimes,
@@ -108,6 +109,7 @@ impl Data{
             close.push(closes);
             volume.push(volumes);
         }
+        println!("\x1b[34mLoading filename = {:?}",path2.unwrap().join(ticker));
         Ok(Data{
             ticker:ticker.to_string(),
             datetime,

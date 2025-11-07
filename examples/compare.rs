@@ -18,8 +18,8 @@ pub fn main()->Result<(),Box<dyn Error>>{
             filename = &arg[11..];
         }
     }
-    let path = env::current_dir()?;
-    println!("Loading filename = {:?}",path.into_os_string().into_string().unwrap()+"\\"+filename);
+    //let path = env::current_dir()?;
+    //println!("Loading filename = {:?}",path.into_os_string().into_string().unwrap()+"\\"+filename);
     let quotes = Data::load(filename,"test_data/NVDA.csv")?;
     let sma_cross = sma_cross(quotes.clone(),10,20);
     let sma = simple_sma(quotes.clone(),10);
