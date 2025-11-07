@@ -1,7 +1,10 @@
+use crate::trades::TradesIndices;
+
 const TAB:usize=15;
 
 #[derive(Default, Clone)]
 pub struct Metrics {
+    pub ticker:Option<String>,
     pub strategy_name:Option<String>,
     //broker metrics
     pub bt_return:Option<f64>,
@@ -15,11 +18,12 @@ pub struct Metrics {
     pub average_pl:Option<f64>,
     pub win_rate:Option<f64>,
     pub avg_duration:Option<f64>,
-    //todo! add trade indices and calculate automatically during backtest initialization
+    //trades indices from broker
+    pub trades_indices: Option<TradesIndices>,
 }
 
 
-
+/*
 macro_rules! print_defined_fields {
     ($instance:expr, { $($field:ident),* $(,)? }) => {
         $(
@@ -28,8 +32,8 @@ macro_rules! print_defined_fields {
             }
         )*
     };
-}
-
+}*/
+/*
 macro_rules! print_custom_fields {
     ($instance:expr, {
         $($field:ident => $formatter:expr),* $(,)?
@@ -41,7 +45,7 @@ macro_rules! print_custom_fields {
         )*
     };
 }
-
+*//*
 macro_rules! print_custom_row_with_headers {
     ($instance:expr, {
         $($field:ident => ($header:expr, $formatter:expr)),* $(,)?
@@ -61,7 +65,7 @@ macro_rules! print_custom_row_with_headers {
         println!();
     };
 }
-
+*/
 macro_rules! print_custom_row_with_headers_aligned {
     ($instance:expr, {
         $first_field:ident => ($first_header:expr, $first_fmt:expr),
@@ -94,6 +98,7 @@ macro_rules! print_custom_row_with_headers_aligned {
 
 
 impl Metrics{
+    /*
     pub fn print_vertically(&self){
         print_custom_fields!(self, {
             strategy_name => |v| format!("Strategy = {}", v),
@@ -101,11 +106,12 @@ impl Metrics{
             trades_nr => |v| format!("Trade # = {}", v),
             //todo! to complete for the other fields
         });
-    }
-    pub fn print_horizontally(&self){
-        println!("{}","_".repeat(11*TAB+3*11));
+    }*/
+    fn print_horizontally(&self){
+        println!("{}","_".repeat(12*TAB+3*12));
         print_custom_row_with_headers_aligned!(self, {
-            strategy_name => ("Strategy", |v:&String| format!("{}",&v[..TAB])),
+            ticker => ("Ticker", |v:&String| {let end = v.len().min(TAB);format!("{}",&v[..end])}),
+            strategy_name => ("Strategy", |v:&String| {let end = v.len().min(15);format!("{}",&v[..end])}),
             bt_return => ("Return", |v| format!("{:.2}%", v)),
             exposure_time => ("Exp time", |v| format!("{:.2}%", v*100.)),
             trades_nr => ("Trades #", |v| format!("{}", v)),
@@ -117,11 +123,11 @@ impl Metrics{
             max_drawd => ("Max Drawdown", |v| format!("{:.2}%", v*100.)),
             sharpe => ("Sharpe r", |v| format!("{:.2}", v*252f64.sqrt())),
         });
-        println!("{}","_".repeat(11*TAB+3*11));
+        println!("{}","_".repeat(12*TAB+3*12));
     }
 }
 
-pub fn compare_metrics_horizontally(metrics: &[&Metrics]){
+pub fn report_horizontal(metrics: &[&Metrics]){
     for item in metrics{
         item.print_horizontally();
     }
@@ -141,10 +147,9 @@ macro_rules! print_field {
     };
 }
 
-
-
-pub fn compare_metrics_vertically(metrics: &[Metrics]) {
+pub fn report_vertical(metrics: &[&Metrics]) {
     println!("{}","_".repeat(100));
+    print_field!("Ticker", metrics, |i:&Metrics| i.ticker.clone(), |s|  s, TAB);
     print_field!("Strategy", metrics, |i:&Metrics| i.strategy_name.clone(), |s|  s, TAB);
     print_field!("Return", metrics, |i:&Metrics| i.bt_return, |r| format!("{:.2}%", r), TAB);
     print_field!("Exp time", metrics, |i:&Metrics| i.exposure_time, |s| format!("{:.2}%",s*100.), TAB);
@@ -158,3 +163,4 @@ pub fn compare_metrics_vertically(metrics: &[Metrics]) {
     print_field!("Sharpe r", metrics, |i:&Metrics| i.sharpe, |s| format!("{:.2}",s*252f64.sqrt()), TAB);
     println!("{}","_".repeat(100));
 }
+

@@ -1,8 +1,10 @@
 use crate::broker::Execution::AtOpen;
-use crate::config::{Config, get_config};
+use crate::config::get_config;
 use crate::datas::Data;
 use crate::metrics::Metrics;
 use crate::strategies::Strategy;
+use crate::trades::trade_indices_from_broker;
+
 #[derive(Clone, Debug)]
 pub enum Execution{
     AtOpen(u32),
@@ -54,6 +56,7 @@ pub struct Broker{
     pub account:Vec<f64>,
     pub cash:Vec<f64>,
     pub mtm:Vec<f64>,
+    pub networth:Vec<f64>,
 }
 
 pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
@@ -69,17 +72,17 @@ pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
                 carry = Some(n);
                 orders_delayed.push(AtOpen(n));
             }
-            NA => {
+            _ => {
                 if let Some(x) = carry {
                     if x >= 1 {
                         carry = Some(x - 1);
                         orders_delayed.push(AtOpen(x - 1));
                     } else {
                         carry = None;
-                        orders_delayed.push(NA);
+                        orders_delayed.push(Execution::No);
                     }
                 } else {
-                    orders_delayed.push(NA);
+                    orders_delayed.push(Execution::No);
                 }
             }
         }
@@ -90,7 +93,7 @@ pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
         match val {
             AtOpen(0) => status.push(Status::Executed),
             AtOpen(_) => status.push(Status::Sent),
-            NA => status.push(Status::No),
+            _ => status.push(Status::No),
         }
     }
     //calculate accounts and positions
@@ -101,6 +104,7 @@ pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
     let mut invested = vec![0.;status.len()];
     let mut mtm = vec![0.;status.len()];
     let mut cash = vec![0.;status.len()];
+    let mut networth = vec![0.;status.len()];
     let cfg = get_config();
     for i in 0..status.len(){
         //availables[i..].fill(positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i) + accounts[i]);//
@@ -122,9 +126,10 @@ pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
             //accounts[i..].fill(availables[i]-positions[i] as f64*cfg.execution_time.to_quotes(quotes.clone(),i))
         }
         mtm[i]=positions[i] as f64 * cfg.execution_time.to_quotes(quotes.clone(),i) - invested[i];//todo! mtm is now calculated on execution_time: do on close?
+        networth[i] = positions[i] as f64 * quotes.close[i] + accounts[i];
     }
     Broker{execution:orders_delayed,status, available:availables, position:positions,
-        invested:invested, fees:fees, account:accounts, cash:cash,mtm:mtm}
+        invested:invested, fees:fees, account:accounts, cash:cash,mtm:mtm, networth:networth}
 }
 
 impl Broker{
@@ -157,20 +162,23 @@ impl Broker{
         println!("Max drawdown = {:.2}%",max_drawdown*100.);
     }
     pub fn calculate_metrics(&self, metrics: &mut Metrics){
-        metrics.bt_return = Some((self.available.last().unwrap()/self.available.first().unwrap()).ln()*100.);
+        metrics.bt_return = Some((self.networth.last().unwrap()/self.networth.first().unwrap()).ln()*100.);
         let exposure_time = self.position.iter().filter(|&&i|i!=0).count() as f64/self.position.len() as f64;
         metrics.exposure_time = Some(exposure_time);
-        let mut peak = self.available.first().unwrap();
-        let max_drawdown = self.available.iter().map(|v| {
+        let mut peak = self.networth.first().unwrap();
+        let max_drawdown = self.networth.iter().map(|v| {
                 if v > peak { peak = v; }(peak - v) / peak }).fold(0.0, |max_dd, dd| dd.max(max_dd));
         metrics.max_drawd = Some(max_drawdown);
         //sharpe ratio
-        let returns:Vec<f64> = self.available.windows(2).map(|w|(w[1]/w[0]).ln()).collect();
+        let returns:Vec<f64> = self.networth.windows(2).map(|w|(w[1]/w[0]).ln()).collect();
         let rf = 0.00;
         let excess: Vec<f64> = returns.iter().map(|r| r - rf).collect();
         let mean = excess.iter().sum::<f64>() / excess.len() as f64;
         let std = (excess.iter().map(|r| (r - mean).powi(2)).sum::<f64>() / (excess.len() as f64 - 1.0)).sqrt();
         let sharpe = mean / std;
         metrics.sharpe = Some(sharpe);
+    }
+    pub fn trade_indices(self, metrics: &mut Metrics){
+        metrics.trades_indices = Some(trade_indices_from_broker(self));
     }
 }

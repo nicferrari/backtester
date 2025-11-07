@@ -1,11 +1,11 @@
-use csv::Writer;
+//use csv::Writer;
 use crate::datas::Data;
 use crate::orders::Order;
 use crate::orders::Order::{BUY,SHORTSELL,NULL};
-use std::error::Error;
+//use std::error::Error;
 use crate::ta::{Indicator,sma,rsi};
 use serde::{Serialize};
-use serde::de::Unexpected::Str;
+//use serde::de::Unexpected::Str;
 
 /// Struct to hold vector of choices and indicators<BR>
 /// There is no specific constructor<BR>

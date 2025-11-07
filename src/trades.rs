@@ -129,12 +129,13 @@ pub fn report_trade(trades_list: TradeList){
     println!("Average profit/loss = {:.2}%",average_pl);
     println!("Average trade duration = {:.5} days",format!("{average_duration}"));
 }
-
+#[derive(Clone)]
 pub struct TradeIndices{
     position:usize,
     open_index:usize,
     close_index: usize,
 }
+#[derive(Clone)]
 pub struct TradesIndices{
     pub indices:Vec<TradeIndices>,
 }
@@ -157,7 +158,7 @@ impl TradeIndices{
         let max_pl = ((data.high[self.open_index..=self.close_index].iter().copied().reduce(f64::max).unwrap())/data.open[self.open_index]-1.)*100.*strategy.choices[self.open_index-1].sign() as f64;
         let min_pl = ((data.low[self.open_index..=self.close_index].iter().copied().reduce(f64::min).unwrap())/data.open[self.open_index]-1.)*100.*strategy.choices[self.open_index-1].sign() as f64;
         print!(" (max {:.2}% min {:.2}%)",max_pl.max(min_pl),max_pl.min(min_pl));
-        print!("\n");
+        println!();
     }
     fn calc_pl(&self, data: Data, strategy: Strategy) -> f64 {
         //strategy.choices[self.open_index-1].sign() as f64 *(data.open[self.close_index]/data.open[self.open_index]-1.)*100.
@@ -187,6 +188,7 @@ impl TradesIndices{
     }
     pub fn calculate_metrics(&self, metrics: &mut Metrics, data: Data, strategy: Strategy){
         //let mut metrics = Metrics::default();
+        metrics.ticker = Some(data.ticker.to_string());
         metrics.strategy_name = Some(strategy.clone().name);
         metrics.trades_nr = Some(self.indices.len());
         let max_pl = self.indices.iter().map(|t |t.calc_pl(data.clone(), strategy.clone())).reduce(f64::max).unwrap();

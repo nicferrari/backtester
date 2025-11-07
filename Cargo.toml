@@ -5,6 +5,7 @@ description = "Financial backesting library"
 license = "Apache-2.0"
 repository = "https://github.com/nicferrari/backtester"
 edition = "2021"
+exclude = ["stateful.rs"]
 
 [dependencies]
 yahoo_finance_api = "2.2.1"
