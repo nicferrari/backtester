@@ -1,4 +1,5 @@
 use crate::datas::Data;
+use std::sync::Arc;
 
 ///container for checking calculation of indicator vs mktdata
 #[derive(Clone)]
@@ -6,6 +7,12 @@ pub struct Indicator{
     pub indicator:Vec<f64>,
     pub quotes:Data,
 }
+
+pub struct Indicator_arc{
+    pub indicator:Vec<f64>,
+    pub quotes:Arc<Data>,
+}
+
 
 impl Indicator{
     /*

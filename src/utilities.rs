@@ -1,5 +1,6 @@
 use crate::datas::Data;
-use crate::strategies::Strategy;
+use crate::strategies::{Strategy,Strategy_arc};
+use std::sync::Arc;
 
 pub trait SerializeAsCsv {
     fn headers(&self) -> Vec<String>;
@@ -133,3 +134,68 @@ impl SerializeAsCsv for Broker{
         Ok(())
     }
 }
+
+impl SerializeAsCsv for Strategy_arc {
+    fn headers(&self) -> Vec<String> {
+        let mut header = vec!["Name".to_string(), "Choice".to_string()];
+        if let Some(indicators) = &self.indicator {
+            for i in 0..indicators.len() {
+                header.push(format!("Indicator {}", i + 1));
+            }
+        }
+        header
+    }
+
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows = Vec::new();
+        if let Some(indicators) = &self.indicator {
+            for i in 0..self.choices.len() {
+                let mut row = vec![self.name.clone(), self.choices[i].to_string().parse().unwrap()];
+                row.extend(indicators.iter().map(|ind| ind[i].to_string()));
+                rows.push(row);
+            }
+        }
+        rows
+    }
+    fn to_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let datasets: Vec<&dyn SerializeAsCsv> = vec![self];
+        write_combined_csv(file_path, &datasets[..])?;
+        Ok(())
+    }
+}
+
+impl SerializeAsCsv for Arc<Data> {
+    fn headers(&self) -> Vec<String> {
+        vec![
+            "ticker".to_string(),
+            "date".to_string(),
+            "open".to_string(),
+            "high".to_string(),
+            "low".to_string(),
+            "close".to_string(),
+            "volume".to_string(),
+        ]
+    }
+
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows = Vec::new();
+        for i in 0..self.datetime.len() {
+            rows.push(vec![
+                self.ticker.clone(),
+                self.datetime[i].to_string(),
+                self.open[i].to_string(),
+                self.high[i].to_string(),
+                self.low[i].to_string(),
+                self.close[i].to_string(),
+                self.volume[i].to_string(),
+            ]);
+        }
+        rows
+    }
+    fn to_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let datasets: Vec<&dyn SerializeAsCsv> = vec![self];
+        write_combined_csv(file_path, &datasets[..])?;
+        Ok(())
+    }
+}
+

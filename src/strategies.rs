@@ -4,9 +4,10 @@ use crate::datas::Data;
 use crate::orders::Order;
 use crate::orders::Order::{BUY,SHORTSELL,NULL};
 //use std::error::Error;
-use crate::ta::{Indicator,sma,rsi};
+use crate::ta::{Indicator,sma,rsi, Indicator_arc};
 use serde::{Serialize};
 //use serde::de::Unexpected::Str;
+use std::sync::Arc;
 
 /// Struct to hold vector of choices and indicators<BR>
 /// There is no specific constructor<BR>
@@ -17,6 +18,14 @@ pub struct Strategy{
     pub choices:Vec<Order>,
     pub indicator:Option<Vec<Vec<f64>>>,
 }
+#[derive(Clone, Serialize)]
+pub struct Strategy_arc{
+    pub name:String,
+    pub choices:Vec<Order>,
+    pub indicator:Option<Vec<Vec<f64>>>,
+    pub data:Arc<Data>,
+}
+
 
 impl Strategy{
     pub fn choices(&self)->Vec<Order>{
@@ -169,6 +178,31 @@ pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
         indicator:indicator,
     }
 }
+
+pub fn sma_cross_arc(quotes:Arc<Data>, short_period:usize, long_period:usize)->Strategy_arc{
+    if short_period >= long_period {panic!("Error: short SMA parameter should be shorter than long SMA parameter");}
+    let sma_short = sma(&quotes, short_period);
+    let sma_long = sma(&quotes, long_period);
+    let ind_short = Indicator_arc{indicator:sma_short,quotes:quotes.clone()};
+    let ind_long = Indicator_arc{indicator:sma_long, quotes:quotes.clone()};
+    let length = ind_short.quotes.timestamps().len();
+    let mut choices = vec![NULL;length];
+    for i in 0..length{
+        if ind_long.indicator[i]!=-1.{
+            if ind_short.indicator[i]>ind_long.indicator[i]{choices[i]=BUY}
+            else {choices[i]=SHORTSELL};
+        }
+    }
+    let name=format!("sma_cross_{}_{}",short_period,long_period);
+    let indicator = Some(vec![ind_short.indicator,ind_long.indicator]);
+    Strategy_arc{
+        name:name,
+        choices:choices,
+        indicator:indicator,
+        data:quotes,
+    }
+}
+
 ///Returns a Relative Strength Index Strategy (i.e. goes short if RSI > 70, long when RSI < 30, and stay out of market elsewhere)
 pub fn rsi_strategy(quotes:Data, period:usize)->Strategy{
     let rsi = rsi(&quotes,period);

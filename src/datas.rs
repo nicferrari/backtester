@@ -7,6 +7,7 @@ use tokio_test;
 use std::error::Error;
 use serde::{Serialize, Serializer};
 use serde::ser::{SerializeSeq};
+use std::sync::Arc;
 
 fn download_data(ticker:&str, interval:&str, range:&str) ->Result<Vec<Quote>,Box<dyn Error>>{
     let provider = yahoo::YahooConnector::new().unwrap();
@@ -69,6 +70,28 @@ impl Data{
             volume:volumes,
         })
     }
+
+    pub fn new_from_yahoo_arc(ticker:&str, interval:&str, range:&str) ->Result<Arc<Self>, Box<dyn Error>>{
+        let quotes = download_data(&ticker, interval, range)?;
+        let timestamps:Vec<u64> = quotes.iter().map(|s|s.timestamp).collect();
+        let yahoo_datetimes: Vec<DateTime<FixedOffset>> = timestamps.iter().map(|&ts|{FixedOffset::east_opt(0).unwrap().timestamp_opt(ts as i64,0).unwrap()}).collect();
+        let opens:Vec<f64> = quotes.iter().map(|s|s.open).collect();
+        let highs:Vec<f64> = quotes.iter().map(|s|s.high).collect();
+        let lows:Vec<f64> = quotes.iter().map(|s|s.low).collect();
+        let closes:Vec<f64> = quotes.iter().map(|s|s.close).collect();
+        let volumes:Vec<u64> = quotes.iter().map(|s|s.volume).collect();
+        println!("\x1b[34m{} {} data ({}) downloaded from Yahoo!",ticker, range, interval);
+        Ok(Arc::new(Data{
+            ticker:ticker.to_string(),
+            datetime:yahoo_datetimes,
+            open:opens,
+            high:highs,
+            low:lows,
+            close:closes,
+            volume:volumes,
+        }))
+    }
+
     pub fn save(&self, filename:&str)->Result<(), Box<dyn Error>>{
         let mut wrt = Writer::from_path(filename).expect("invalid path");
         let dates_t:Vec<Vec<String>> = self.datetime.iter().map(|e|vec![e.to_string()]).collect();
