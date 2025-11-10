@@ -9,6 +9,7 @@ use rs_backtester::trades::{report_trade, trade_indices_from_broker, trade_list,
 use rs_backtester::metrics::Metrics;
 
 fn main() ->Result<(),Box<dyn Error>> {
+    /*
     //example to log or debug backtesting
     let quotes = Data::new_from_yahoo("PLTR","1d","6mo")?;
     let sma_cross_strategy = sma_cross(quotes.clone(), 10,20);
@@ -37,8 +38,8 @@ fn main() ->Result<(),Box<dyn Error>> {
     broker.print_stats();
     let mut metrics = Metrics::default();
     trade_indices.calculate_metrics(&mut metrics, quotes.clone(), sma_cross_strategy.clone());
-    metrics.print_horizontally();
+    //metrics.print_horizontally();
     broker.calculate_metrics(&mut metrics);
-    metrics.print_horizontally();
+    //metrics.print_horizontally();*/
     Ok(())
 }

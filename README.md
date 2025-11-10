@@ -64,6 +64,10 @@ let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),1
 Check the examples folder for more!
 <br>
 
+### Examples
+- backtesting: testing long-short sma cross with or without commission fees
+- compare: comparing different strategies
+- modify_strategy: how to modify a strategy in long-only, short-only, reverse 
 
 ## Disclaimer <br>
 This software is provided for educational and research purposes only.<br>

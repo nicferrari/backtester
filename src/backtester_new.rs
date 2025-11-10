@@ -8,7 +8,6 @@ use crate::strategies::{Strategy,Strategy_arc};
 use crate::datas::Data;
 use crate::trades::trade_indices_from_broker;
 use crate::utilities::{SerializeAsCsv, write_combined_csv};
-//use std::sync::Arc;
 
 pub struct Backtest{
     pub(super) quotes: Data,
@@ -27,7 +26,7 @@ impl Backtest{
         println!("\x1b[34mBacktesting for {} calculated in {:?}\x1b[0m", strategy.name,duration);
         let mut metrics=Metrics::default();
         broker.calculate_metrics(&mut metrics);
-        let trades = trade_indices_from_broker(broker.clone());
+        let trades = trade_indices_from_broker(&broker);
         trades.calculate_metrics(&mut metrics, data.clone(), strategy.clone());
         broker.clone().trade_indices(&mut metrics);
         let duration = start.elapsed();
@@ -60,7 +59,7 @@ impl Backtest{
 }
 
 pub struct Backtest_arc{
-    pub(crate) strategy: Strategy_arc,
+    pub strategy: Strategy_arc,
     broker: Broker,
     pub metrics: Metrics,
     pub local_config:Option<Config>,
@@ -78,9 +77,9 @@ impl crate::backtester_new::Backtest_arc {
         println!("\x1b[34mBacktesting (ARC) for {} calculated in {:?}\x1b[0m", strategy.name, duration);
         let mut metrics = Metrics::default();
         broker.calculate_metrics(&mut metrics);
-        let trades = trade_indices_from_broker(broker.clone());
+        let trades = trade_indices_from_broker(&broker);
         trades.calculate_metrics_arc(&mut metrics,  strategy.clone());
-        broker.clone().trade_indices(&mut metrics);
+        broker.trade_indices(&mut metrics);
         let duration = start.elapsed();
         println!("\x1b[34mBacktesting and metrics (ARC) for { } calculated in {:?}\x1b[0m", strategy.name, duration);
         crate::backtester_new::Backtest_arc {

@@ -141,7 +141,7 @@ pub struct TradeIndices{
 pub struct TradesIndices{
     pub indices:Vec<TradeIndices>,
 }
-pub fn trade_indices_from_broker(broker: Broker)->TradesIndices{
+pub fn trade_indices_from_broker(broker: &Broker)->TradesIndices{
     let indices:Vec<usize> = broker.status.iter().enumerate().filter_map(|(i,v)| if *v == Status::Executed {Some(i)} else {None}).collect();
     let mut pairs:Vec<(usize,usize)> = indices.windows(2).map(|w|(w[0],w[1])).collect();
     //force close last trade if open

@@ -1,4 +1,3 @@
-use std::env;
 use std::error::Error;
 use rs_backtester::backtester::{Backtest, Commission};
 use rs_backtester::datas::Data;

@@ -171,7 +171,7 @@ impl Broker{
     }
     pub fn calculate_metrics(&self, metrics: &mut Metrics){
         metrics.bt_return = Some((self.networth.last().unwrap()/self.networth.first().unwrap()).ln()*100.);
-        let exposure_time = self.position.iter().filter(|&&i|i!=0).count() as f64/self.position.len() as f64;
+        let exposure_time = self.position.iter().filter(|&&i|i!=0).count() as f64/self.position.len() as f64;//todo!calculate on indices not on days
         metrics.exposure_time = Some(exposure_time);
         let mut peak = self.networth.first().unwrap();
         let max_drawdown = self.networth.iter().map(|v| {
@@ -186,7 +186,7 @@ impl Broker{
         let sharpe = mean / std;
         metrics.sharpe = Some(sharpe);
     }
-    pub fn trade_indices(self, metrics: &mut Metrics){
+    pub fn trade_indices(&self, metrics: &mut Metrics){
         metrics.trades_indices = Some(trade_indices_from_broker(self));
     }
 }

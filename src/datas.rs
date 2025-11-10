@@ -143,6 +143,44 @@ impl Data{
             volume,
         })
     }
+
+    ///load data from csv OHLC format at specified path
+    pub fn load_arc(path:&str, ticker:&str)->Result<Arc<Self>,Box<dyn Error>>{
+        let path2 = env::current_dir();
+        let mut rdr = csv::Reader::from_path(path).expect(&format!("couldn't read file in {:?}",path2));
+        let mut datetime= Vec::new();
+        let mut open = Vec::new();
+        let mut high = Vec::new();
+        let mut low = Vec::new();
+        let mut close = Vec::new();
+        let mut volume= Vec::new();
+        for result in rdr.records(){
+            let record = result.expect("couldn't read data");
+            let dates:DateTime<FixedOffset> = record[0].parse().expect("couldn't read data");
+            let opens:f64 = record[1].parse().expect("couldn't read data");
+            let highs:f64 = record[2].parse().expect("couldn't read data");
+            let lows:f64 = record[3].parse().expect("couldn't read data");
+            let closes:f64 = record[4].parse().expect("couldn't read data");
+            let volumes:u64 = record[5].parse().expect("couldn't read data");
+            datetime.push(dates);
+            open.push(opens);
+            high.push(highs);
+            low.push(lows);
+            close.push(closes);
+            volume.push(volumes);
+        }
+        println!("\x1b[34mLoading filename = {:?}",path2.unwrap().join(ticker));
+        Ok(Arc::new(Data{
+            ticker:ticker.to_string(),
+            datetime,
+            open,
+            high,
+            low,
+            close,
+            volume,
+        }))
+    }
+
     pub fn ticker(&self)->&str{
         return &*self.ticker;
     }

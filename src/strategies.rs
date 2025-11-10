@@ -95,7 +95,74 @@ impl Strategy{
     }
 }
 
-///Returns typical Buy and Hold Strategy
+impl Strategy_arc{
+    ///invert strategy (LONG->SHORT and viceversa)
+    pub fn invert(&self) ->Self{
+        let length = self.choices.len();
+        let mut inv_choices = self.choices.clone();
+        for i in 0..length{
+            if self.choices[i]==BUY { inv_choices[i]=SHORTSELL} else if self.choices[i]==SHORTSELL { inv_choices[i]=BUY}
+        }
+        let indicator = self.indicator.clone();
+        Strategy_arc{
+            name:self.name.clone()+"_inv",
+            choices: inv_choices,
+            indicator,
+            data:self.data.clone(),
+        }
+    }
+    pub fn long_only(&self) ->Self{
+        let length = self.choices.len();
+        let mut long_choices = self.choices.clone();
+        for i in 0..length{
+            if self.choices[i]==SHORTSELL { long_choices[i]=NULL}
+        }
+        let indicator = self.indicator.clone();
+        Strategy_arc{
+            name:self.name.clone()+"_long",
+            choices: long_choices,
+            indicator,
+            data:self.data.clone(),
+        }
+    }
+    pub fn short_only(&self) ->Self{
+        let length = self.choices.len();
+        let mut short_choices = self.choices.clone();
+        for i in 0..length{
+            if self.choices[i]==BUY { short_choices[i]=NULL}
+        }
+        let indicator = self.indicator.clone();
+        Strategy_arc{
+            name:self.name.clone()+"_short",
+            choices: short_choices,
+            indicator,
+            data:self.data.clone(),
+        }
+    }
+    ///skip first signal
+    pub fn skipfirst(&self)->Self{
+        let mut change_count = 0;
+        let mut new_choices = self.choices.clone();
+        let indicator=self.indicator.clone();
+        for i in 1..self.choices.len(){
+            if self.choices[i]!=self.choices[i-1]{
+                change_count += 1;
+            }
+            if change_count<2{
+                new_choices[i]=Order::NULL;
+            }
+            else { new_choices[i]=self.choices[i] }
+        }
+        Strategy_arc{
+            name:self.name.clone()+"_skip",
+            choices:new_choices,
+            indicator,
+            data:self.data.clone(),
+        }
+    }
+}
+
+///Returns Buy and Hold Strategy
 pub fn buy_n_hold(quotes:Data)->Strategy{
     let length = quotes.timestamps().len();
     let choices = vec![BUY;length];
@@ -107,6 +174,22 @@ pub fn buy_n_hold(quotes:Data)->Strategy{
         indicator,
     }
 }
+///Returns Buy and Hold Strategy
+/// todo! buy and hold start from 3rd+ period (1 to see the data, 1 to send order, 1+ to execute)
+pub fn buy_n_hold_arc(quotes:Arc<Data>)->Strategy_arc{
+    let length = quotes.timestamps().len();
+    let mut choices = vec![BUY;length];
+    let name = "buy_and_hold".to_string();
+    let indicator = Some(vec![vec![-1.;length]]);
+    choices[0]=NULL;
+    Strategy_arc{
+        name:name,
+        choices:choices,
+        indicator,
+        data:quotes.clone(),
+    }
+}
+
 ///Returns the opposite of a Buy and Hold Strategy:
 /// start by shortselling and keep the short position open to the end
 pub fn short_n_hold(quotes:Data)->Strategy{
@@ -154,6 +237,30 @@ pub fn simple_sma(quotes:Data, period:usize) ->Strategy{
         indicator,
     }
 }
+///Returns a Simple Moving Average Strategy with a user specified time-period
+pub fn simple_sma_arc(quotes:Arc<Data>, period:usize) ->Strategy_arc{
+    let sma = sma(&quotes,period);
+    let indicator = Indicator_arc{indicator:sma,quotes:quotes.clone()};
+    let length = indicator.quotes.timestamps().len();
+    let mut choices = vec![NULL;length];
+    for i in 0..length{
+        if indicator.indicator[i]!=-1.{
+            if indicator.indicator[i]<=indicator.quotes.close()[i]{
+                choices[i] = BUY;
+            }else if indicator.indicator[i]>indicator.quotes.close()[i]{
+                choices[i] = SHORTSELL}
+        }
+    }
+    let name = format!("simple_sma_{}",period);
+    let indicator = Some(vec![indicator.indicator]);
+    Strategy_arc{
+        name:name,
+        choices:choices,
+        indicator,
+        data:quotes.clone(),
+    }
+}
+
 ///Returns a Simple Moving Average Crossing Strategy (i.e. goes long when SMA short crosses SMA long and shortsells otherwise)<BR>
 ///User can specify both time-periods (short and long, with short first)
 pub fn sma_cross(quotes:Data, short_period:usize, long_period:usize)->Strategy{
@@ -221,5 +328,26 @@ pub fn rsi_strategy(quotes:Data, period:usize)->Strategy{
         name,
         choices,
         indicator,
+    }
+}
+///Returns a Relative Strength Index Strategy (i.e. goes short if RSI > 70, long when RSI < 30, and stay out of market elsewhere)
+pub fn rsi_strategy_arc(quotes:Arc<Data>, period:usize)->Strategy_arc{
+    let rsi = rsi(&quotes,period);
+    let indicator = Indicator_arc{indicator:rsi,quotes:quotes.clone()};
+    let length = indicator.quotes.timestamps().len();
+    let mut choices = vec![NULL;length];
+    for i in 0..length{
+        if indicator.indicator[i]!=-1.{
+            if indicator.indicator[i]>70.{choices[i]=SHORTSELL}
+            else if indicator.indicator[i]<30. {choices[i]=BUY}
+        }
+    }
+    let name = format!("rsi_{}",period);
+    let indicator=Some(vec![indicator.indicator]);
+    Strategy_arc{
+        name,
+        choices,
+        indicator,
+        data:quotes.clone(),
     }
 }
