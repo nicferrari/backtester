@@ -1,0 +1,19 @@
+use std::error::Error;
+use rs_backtester::backtester_new::Backtest_arc;
+use rs_backtester::datas::Data;
+use rs_backtester::strategies::sma_cross_arc;
+use rs_backtester::utilities::{SerializeAsCsv, write_combined_csv};
+
+fn main() ->Result<(),Box<dyn Error>> {
+    let quotes = Data::new_from_yahoo_arc("PLTR","1d","6mo")?;
+    let sma_cross_strategy = sma_cross_arc(quotes.clone(), 10,20);
+    let sma_cross_bt = Backtest_arc::new(sma_cross_strategy.clone(),100000f64);
+    quotes.to_csv("quotes.csv")?;
+    sma_cross_strategy.to_csv("strategy.csv")?;
+    sma_cross_bt.to_csv_arc("bt.csv")?;
+    //it is also possible to combine multiple parts together
+    //suppose we want to have both quotes and strategy in the same csv
+    let datasets: Vec<&dyn SerializeAsCsv> = vec![&quotes, &sma_cross_strategy];
+    write_combined_csv("combined.csv", &datasets[..])?;
+    Ok(())
+}

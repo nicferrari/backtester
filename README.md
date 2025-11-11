@@ -34,18 +34,14 @@ let sma_cross_strategy = sma_cross(quotes.clone(), 10,20);
 ```
 - Create an instance of the Backtest class
 ```rust
-let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),100000f64, Commission::default());
+let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
 ```
 - Now:
   - you can read a report of the backtest
     ```rust
-    report(sma_cross_tester);
+    report_horizontal(sma_cross_tester);
     ```
-  - you can produce a log period by period with the requested parameters
-    ```rust
-    sma_cross_tester.log(&["date","open","high","low","close","position","account","indicator"]);
-    ```
-  - you can see the list of trades executed by the strategy
+  - you can see the list of trades
     ```rust
     trade_list(sma_cross_tester);
     ```
@@ -56,18 +52,19 @@ let sma_cross_tester = Backtest::new(quotes.clone(),sma_cross_strategy.clone(),1
   <img src="https://github.com/nicferrari/rs-backtester/blob/master/plot.png" width="400"/><BR>
   - you can save it to CSV for inspection
     ```rust
-    sma_cross_tester.to_csv("sma_cross.csv")?;
+    sma_cross_bt.to_csv("bt.csv")?;
     ```
   - you can also compare multiple strategies at once
   - and you can also play with your strategy modifying it by inverting it or transform it in long or short-only
-<HR>
-Check the examples folder for more!
-<br>
 
 ### Examples
-- backtesting: testing long-short sma cross with or without commission fees
-- compare: comparing different strategies
-- modify_strategy: how to modify a strategy in long-only, short-only, reverse 
+- <B>backtesting</B>: how to test a strategy, with and without commission fees
+- <B>compare</B>: how to compare different strategies
+- <B>modify_strategy</B>: how to modify a strategy in long-only, short-only, reverse
+- <B>trades</B>: how to obtain list of trades (with stats) in a Backtest or see details of a single trade
+- <B>strategy</B>: how to build a custom strategy
+- <B>log</B>: how to log (to csv) parts or whole Backtest
+- <B>chart</B>: how to save a plot (.png) of the backtest
 
 ## Disclaimer <br>
 This software is provided for educational and research purposes only.<br>

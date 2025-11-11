@@ -60,7 +60,7 @@ impl Backtest{
 
 pub struct Backtest_arc{
     pub strategy: Strategy_arc,
-    broker: Broker,
+    pub(crate) broker: Broker,
     pub metrics: Metrics,
     pub local_config:Option<Config>,
 }
@@ -79,6 +79,7 @@ impl crate::backtester_new::Backtest_arc {
         broker.calculate_metrics(&mut metrics);
         let trades = trade_indices_from_broker(&broker);
         trades.calculate_metrics_arc(&mut metrics,  strategy.clone());
+        //adds TradesIndices to Metrics
         broker.trade_indices(&mut metrics);
         let duration = start.elapsed();
         println!("\x1b[34mBacktesting and metrics (ARC) for { } calculated in {:?}\x1b[0m", strategy.name, duration);
@@ -99,6 +100,11 @@ impl crate::backtester_new::Backtest_arc {
         print!(" commission rate {:.2}%,",self.local_config.clone().unwrap().commission_rate*100.);
         println!(" execution time = {:?}\x1b[0m",self.local_config.clone().unwrap().execution_time);
     }
-
-
+    pub fn print_all_trades(&self){
+        self.metrics.trades_indices.clone().unwrap().print_all_trades_arc(self.strategy.clone(),self.local_config.clone().unwrap());
+    }
+    pub fn print_single_trade(&self, position: usize){
+        //todo! check position (-1: starting from 1 instead of 0: change?)
+        self.metrics.trades_indices.clone().unwrap().indices[position-1].print_arc(self.strategy.clone(),self.local_config.clone().unwrap());
+    }
 }

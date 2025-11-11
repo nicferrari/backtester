@@ -12,5 +12,6 @@ pub mod broker;
 pub mod metrics;
 pub mod backtester_new;
 pub mod config;
+pub mod chart_test;
 
 pub use errors::{Result};

@@ -9,7 +9,7 @@ fn load_data()->Result<Arc<Data>,Box<dyn Error>>{
     Ok(Data::load_arc(filename, "NVDA")?)
 }
 #[test]
-fn test_buynhold_metrics_tests(){
+fn buynhold_metrics_tests(){
     let data = load_data().unwrap();
     let buynhold = buy_n_hold_arc(data.clone());
     let buynhold_bt = Backtest_arc::new(buynhold,100_000.);

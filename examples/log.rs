@@ -9,7 +9,7 @@ use rs_backtester::trades::{report_trade, trade_indices_from_broker, trade_list,
 use rs_backtester::metrics::Metrics;
 
 fn main() ->Result<(),Box<dyn Error>> {
-    /*
+/*
     //example to log or debug backtesting
     let quotes = Data::new_from_yahoo("PLTR","1d","6mo")?;
     let sma_cross_strategy = sma_cross(quotes.clone(), 10,20);

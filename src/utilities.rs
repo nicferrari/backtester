@@ -11,6 +11,7 @@ pub trait SerializeAsCsv {
 
 use csv::Writer;
 use std::error::Error;
+use crate::backtester_new::Backtest_arc;
 use crate::broker::Broker;
 
 pub fn write_combined_csv(file_path: &str, datasets: &[&dyn SerializeAsCsv]) -> Result<(), Box<dyn Error>> {
