@@ -1,19 +1,19 @@
 use crate::datas::Data;
 use std::sync::Arc;
-
+/*
 ///container for checking calculation of indicator vs mktdata
 #[derive(Clone)]
 pub struct Indicator{
     pub indicator:Vec<f64>,
     pub quotes:Data,
-}
-
+}*/
+///container for checking calculation of indicator vs mktdata
 pub struct Indicator_arc{
     pub indicator:Vec<f64>,
     pub quotes:Arc<Data>,
 }
 
-
+/*
 impl Indicator{
     /*
     pub fn to_csv(&self, filename:&str)->Result<(), Box<dyn Error>>{
@@ -33,23 +33,25 @@ impl Indicator{
     pub fn indicator(&self)->Vec<f64>{
         return self.indicator.clone();
     }
-}
-
+}*/
+///calculate simple moving average of period x
+///use close data
+/// todo! generalize to OHLC
 pub fn sma(quotes:&Data, period:usize)->Vec<f64>{
     let mut indicator:Vec<f64> = vec![-1.;period-1];
-    let length = quotes.timestamps().len();
+    let length = quotes.datetime.len();
     for i in period..length+1{
-        let slice = &quotes.close()[i-period..i];
+        let slice = &quotes.close[i-period..i];
         let sum:f64 =Iterator::sum(slice.iter());
         let sma = sum/(period as f64);
         indicator.append(&mut vec![sma;1]);
     }
-    return indicator;
+    indicator
 }
 pub fn rsi(quotes:&Data, period:usize)->Vec<f64>{
     let mut indicator:Vec<f64> = vec![-1.;period-1];
-    let length = quotes.timestamps().len();
-    let diff:&Vec<f64> = &quotes.close().iter().zip(quotes.open().iter()).map(|(a,b)|a-b).collect();
+    let length = quotes.datetime.len();
+    let diff:&Vec<f64> = &quotes.close.iter().zip(quotes.open.iter()).map(|(a,b)|a-b).collect();
     for i in period..length+1{
         let slice = &diff[i-period..i];
         let positive:Vec<f64> = slice.iter().cloned().filter(|&x|x>0.0).collect();

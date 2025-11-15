@@ -1,6 +1,6 @@
-use crate::backtester::Backtest;
-use crate::orders::Order::{BUY, SHORTSELL, NULL};
-
+//use crate::backtester::Backtest;
+//use crate::orders::Order::{BUY, SHORTSELL, NULL};
+/*
 pub trait BacktestNr {
     fn uniquereport(&self);
 }
@@ -106,4 +106,4 @@ impl BacktestNr for Vec<Backtest>{
 
 pub fn report<T: BacktestNr>(items: T){
     items.uniquereport();
-}
+}*/

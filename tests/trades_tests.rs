@@ -7,4 +7,6 @@ fn load_data() ->Result<Arc<Data>,Box<dyn Error>>{
     Ok(Data::load_arc(filename, "NVDA")?)
 }
 #[test]
-fn trades_tests() {}
+fn trades_tests() {
+    let quotes = load_data().unwrap();
+}

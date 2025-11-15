@@ -2,7 +2,7 @@ use std::error::Error;
 use rs_backtester::backtester_new::Backtest_arc;
 use rs_backtester::datas::Data;
 use rs_backtester::metrics::{report_horizontal_arc, report_vertical_arc};
-use rs_backtester::strategies::{sma_cross, sma_cross_arc};
+use rs_backtester::strategies::{sma_cross_arc};
 
 fn main() ->Result<(),Box<dyn Error>> {
     let quotes = Data::new_from_yahoo_arc("NVDA","1d","6mo")?;

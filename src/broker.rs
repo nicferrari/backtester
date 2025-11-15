@@ -1,8 +1,10 @@
+use std::fmt;
+use std::fmt::Formatter;
 use crate::broker::Execution::AtOpen;
 use crate::config::get_config;
 use crate::datas::Data;
 use crate::metrics::Metrics;
-use crate::strategies::{Strategy, Strategy_arc};
+use crate::strategies::{Strategy_arc};
 use crate::trades::trade_indices_from_broker;
 use std::sync::Arc;
 
@@ -13,12 +15,12 @@ pub enum Execution{
 }
 
 impl Execution{
-    pub fn to_quotes(&self, data: Data, index:usize)->f64{
+    /*pub fn to_quotes(&self, data: Data, index:usize)->f64{
         match self {
             AtOpen(_) => data.open[index],
             _ => 0.,
         }
-    }
+    }*/
     pub fn to_quotes_arc(&self, data: Arc<Data>, index:usize)->f64{
         match self {
             AtOpen(_) => data.open[index],
@@ -35,7 +37,15 @@ pub enum Status{
     No,
 }
 
-
+impl fmt::Display for Execution{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            AtOpen(u32) => write!(f,"At Open ({})",u32),
+            Execution::No => write!(f,""),
+        }
+    }
+}
+/*
 impl Execution{
     pub fn to_string(&self)->String{
         match self {
@@ -43,7 +53,8 @@ impl Execution{
             Execution::No=>"".to_string(),
         }
     }
-}
+}*/
+/*
 impl Status{
     pub fn to_string(&self)->String{
         match self {
@@ -53,6 +64,17 @@ impl Status{
         }
     }
 }
+*/
+impl fmt::Display for Status{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Status::Sent => write!(f,"sent"),
+            Status::Executed => write!(f,"executed"),
+            Status::No => write!(f,""),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Broker{
     pub execution: Vec<Execution>,
@@ -66,7 +88,7 @@ pub struct Broker{
     pub mtm:Vec<f64>,
     pub networth:Vec<f64>,
 }
-
+/*
 pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
     let cfg = get_config();
     let orders:Vec<Execution> = std::iter::once(Execution::No).chain(
@@ -139,7 +161,7 @@ pub fn calculate(strategy:Strategy, quotes:Data, initial_account:f64) ->Broker{
     Broker{execution:orders_delayed,status, available:availables, position:positions,
         invested:invested, fees:fees, account:accounts, cash:cash,mtm:mtm, networth:networth}
 }
-
+*/
 impl Broker{
     pub fn print_stats(&self){
         println!("\nBroker stats");
@@ -261,5 +283,5 @@ pub fn calculate_arc(strategy:&Strategy_arc, initial_account:f64) ->Broker{
         networth[i] = positions[i] as f64 * strategy.data.close[i] + accounts[i];
     }
     Broker{execution:orders_delayed,status, available:availables, position:positions,
-        invested:invested, fees:fees, account:accounts, cash:cash,mtm:mtm, networth:networth}
+        invested, fees, account:accounts, cash,mtm, networth}
 }

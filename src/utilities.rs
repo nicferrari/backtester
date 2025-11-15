@@ -1,6 +1,11 @@
 use crate::datas::Data;
-use crate::strategies::{Strategy,Strategy_arc};
+use crate::strategies::{Strategy_arc};
 use std::sync::Arc;
+use csv::Writer;
+use std::error::Error;
+use crate::broker::Broker;
+use crate::trades::TradesIndices;
+
 
 pub trait SerializeAsCsv {
     fn headers(&self) -> Vec<String>;
@@ -8,11 +13,6 @@ pub trait SerializeAsCsv {
     ///wrapper function
     fn to_csv(&self, file_path: &str)-> Result<(), Box<dyn Error>>;
 }
-
-use csv::Writer;
-use std::error::Error;
-use crate::backtester_new::Backtest_arc;
-use crate::broker::Broker;
 
 pub fn write_combined_csv(file_path: &str, datasets: &[&dyn SerializeAsCsv]) -> Result<(), Box<dyn Error>> {
     let mut all_headers = Vec::new();
@@ -50,7 +50,7 @@ pub fn write_combined_csv(file_path: &str, datasets: &[&dyn SerializeAsCsv]) -> 
     Ok(())
 }
 
-
+/*
 impl SerializeAsCsv for Strategy {
     fn headers(&self) -> Vec<String> {
         let mut header = vec!["Name".to_string(), "Choice".to_string()];
@@ -114,7 +114,7 @@ impl SerializeAsCsv for Data {
         Ok(())
     }
 }
-
+*/
 impl SerializeAsCsv for Broker{
     fn headers(&self) -> Vec<String> {
         vec!["Execution".to_string(),"Status".to_string(), "Available".to_string(),"Positions".to_string(),
@@ -189,6 +189,31 @@ impl SerializeAsCsv for Arc<Data> {
                 self.low[i].to_string(),
                 self.close[i].to_string(),
                 self.volume[i].to_string(),
+            ]);
+        }
+        rows
+    }
+    fn to_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let datasets: Vec<&dyn SerializeAsCsv> = vec![self];
+        write_combined_csv(file_path, &datasets[..])?;
+        Ok(())
+    }
+}
+impl SerializeAsCsv for TradesIndices {
+    fn headers(&self) -> Vec<String> {
+        vec![
+            "position".to_string(),
+            "open index".to_string(),
+            "close_index".to_string(),
+        ]
+    }
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows = Vec::new();
+        for i in 0..self.indices.len(){
+            rows.push(vec![
+                self.indices[i].position.to_string(),
+                self.indices[i].open_index.to_string(),
+                self.indices[i].close_index.to_string(),
             ]);
         }
         rows

@@ -1,12 +1,12 @@
 use std::env;
 use plotters::prelude::*;
 use chrono::{DateTime, FixedOffset};
-use crate::backtester::Backtest;
+//use crate::backtester::Backtest;
 use plotters::coord::types::RangedCoordf64;
 use plotters::style::full_palette::{GREEN_900, GREY, ORANGE};
 use crate::backtester_new::Backtest_arc;
 use crate::orders;
-
+/*
 ///function used to plot data, indicators and equity
 ///modify Plot_Config to define different chart parameters or apply default
 pub fn plot(backtest:Backtest, config: PlotConfig) ->Result<(), Box<dyn std::error::Error>>{
@@ -132,7 +132,7 @@ pub fn plot(backtest:Backtest, config: PlotConfig) ->Result<(), Box<dyn std::err
     println!("Chart saved as = {:?}",path);
     Ok(())
 }
-
+*/
 pub struct PlotConfig {
     pub display_indic: bool,
     pub display_networth: bool,
@@ -151,7 +151,7 @@ impl Default for PlotConfig {
 
 ///function used to plot data, indicators and equity
 ///modify Plot_Config to define different chart parameters or apply default
-pub fn plot_arc(backtest:&Backtest_arc, config: crate::charts::PlotConfig, filename:&str) ->Result<(), Box<dyn std::error::Error>>{
+pub fn plot_arc(backtest:&Backtest_arc, config: PlotConfig, filename:&str) ->Result<(), Box<dyn std::error::Error>>{
     let yahoo_datetimes = &backtest.strategy.data.datetime;
     let opens= &backtest.strategy.data.open;
     let highs = &backtest.strategy.data.high;
@@ -169,7 +169,7 @@ pub fn plot_arc(backtest:&Backtest_arc, config: crate::charts::PlotConfig, filen
 
     let mut chart: ChartContext<BitMapBackend, Cartesian2d<RangedDateTime<DateTime<FixedOffset>>, RangedCoordf64>>;
 
-    if config.display_networth == true {
+    if config.display_networth {
         chart = ChartBuilder::on(&upper)
             .margin(5)
             .caption("Chart ".to_owned() + &*backtest.strategy.data.ticker, ("sans-serif", 30).into_font())
@@ -187,12 +187,12 @@ pub fn plot_arc(backtest:&Backtest_arc, config: crate::charts::PlotConfig, filen
 
     chart.configure_mesh().x_label_formatter(&|dt|dt.format("%Y-%m-%d").to_string()).draw().unwrap();
 
-    if config.display_indic ==true {
+    if config.display_indic {
         let Some(indicator) = backtest.strategy.clone().indicator else { todo!() };
-        let colors = vec![CYAN,ORANGE];
+        let colors = [CYAN,ORANGE];
         let colors_iter = colors.iter().cycle();
         for (nr,color) in indicator.iter().zip(colors_iter) {
-            let color_clone = color.clone();
+            let color_clone = *color;
             let Some(index) = nr.iter().position(|&x| x != -1.0) else { todo!() };
             let _ = chart.draw_series(LineSeries::new((index..closes.len()).map(|i| (yahoo_datetimes[i], nr[i])), color_clone)).unwrap().label("indic").legend(move |(x, y)| Circle::new((x, y), 5, color_clone.filled()));
         }
@@ -214,7 +214,7 @@ pub fn plot_arc(backtest:&Backtest_arc, config: crate::charts::PlotConfig, filen
         }),);
 
     //add marker and label
-    if config.display_marker_label==true {
+    if config.display_marker_label {
         let mut prev_order = orders::Order::NULL;
         for ((x, y), z) in yahoo_datetimes.iter().zip(closes.iter()).zip(backtest.strategy.choices.iter()) {
             if *z != prev_order{
@@ -223,22 +223,22 @@ pub fn plot_arc(backtest:&Backtest_arc, config: crate::charts::PlotConfig, filen
                     5, // Circle marker size
                     &RED, // Red color
                     &|c, _s, _st| {
-                        return EmptyElement::at(c) +
+                        EmptyElement::at(c) +
                             match z{
-                                orders::Order::BUY=>Polygon::new(&[(0, 0), (6, 0), (3, -6)], GREEN_900),
-                                orders::Order::SHORTSELL=>Polygon::new(&[(0, 0), (6, 0), (3, 6)], RED),
-                                orders::Order::NULL=>Polygon::new(&[(0,0),(6,0)], GREY),
-                            };
+                                orders::Order::BUY=>Polygon::new([(0, 0), (6, 0), (3, -6)], GREEN_900),
+                                orders::Order::SHORTSELL=>Polygon::new([(0, 0), (6, 0), (3, 6)], RED),
+                                orders::Order::NULL=>Polygon::new([(0,0),(6,0)], GREY),
+                            }
                     },
                 ))?;
-                prev_order=*z;
+                prev_order = *z;
             };
         }
     }
 
     chart.configure_series_labels()
-        .border_style(&BLACK)
-        .background_style(&YELLOW.mix(0.8))
+        .border_style(BLACK)
+        .background_style(YELLOW.mix(0.8))
         .draw()
         .unwrap();
 
@@ -263,12 +263,12 @@ pub fn plot_arc(backtest:&Backtest_arc, config: crate::charts::PlotConfig, filen
         let gains: Vec<f64> = networth.clone().iter().map(|value|if *value > networth[0] { *value } else { networth[0] }).collect();
         let losses: Vec<f64> = networth.clone().iter().map(|value|if *value < networth[0] { *value } else { networth[0] }).collect();
 
-        chart_low.draw_series(AreaSeries::new((0..yahoo_datetimes.len()).map(|i|(yahoo_datetimes[i], gains[i])),networth[0], &GREEN.mix(0.2))).unwrap();
-        chart_low.draw_series(AreaSeries::new((0..yahoo_datetimes.len()).map(|i|(yahoo_datetimes[i], losses[i])),networth[0], &RED.mix(0.2))).unwrap();
+        chart_low.draw_series(AreaSeries::new((0..yahoo_datetimes.len()).map(|i|(yahoo_datetimes[i], gains[i])),networth[0], GREEN.mix(0.2))).unwrap();
+        chart_low.draw_series(AreaSeries::new((0..yahoo_datetimes.len()).map(|i|(yahoo_datetimes[i], losses[i])),networth[0], RED.mix(0.2))).unwrap();
 
         chart_low.configure_series_labels()
-            .border_style(&BLACK)
-            .background_style(&YELLOW.mix(0.8))
+            .border_style(BLACK)
+            .background_style(YELLOW.mix(0.8))
             .draw()
             .unwrap();
     }

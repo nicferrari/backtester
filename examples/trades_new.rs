@@ -1,11 +1,11 @@
 use rs_backtester::backtester_new::Backtest_arc;
 use rs_backtester::datas::Data;
 use rs_backtester::metrics::report_horizontal_arc;
-use rs_backtester::strategies::simple_sma_arc;
+use rs_backtester::strategies::sma_arc;
 
 fn main() -> Result<(), Box<dyn std::error::Error>>{
     let quotes = Data::new_from_yahoo_arc("NVDA","1d","6mo")?;
-    let sma_strategy = simple_sma_arc(quotes.clone(),10);
+    let sma_strategy = sma_arc(quotes.clone(), 10);
     let sma_bt = Backtest_arc::new(sma_strategy.clone(),100_000.);
     report_horizontal_arc(&[&sma_bt]);
     sma_bt.print_all_trades();

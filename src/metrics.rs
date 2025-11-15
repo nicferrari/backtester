@@ -1,4 +1,4 @@
-use crate::backtester_new::{Backtest,Backtest_arc};
+use crate::backtester_new::{Backtest_arc};
 use crate::trades::TradesIndices;
 
 const TAB:usize=15;
@@ -111,8 +111,8 @@ impl Metrics{
     fn print_horizontally(&self){
         println!("{}","_".repeat(12*TAB+3*12));
         print_custom_row_with_headers_aligned!(self, {
-            ticker => ("Ticker", |v:&String| {let end = v.len().min(TAB);format!("{}",&v[..end])}),
-            strategy_name => ("Strategy", |v:&String| {let end = v.len().min(15);format!("{}",&v[..end])}),
+            ticker => ("Ticker", |v:&String| {let end = v.len().min(TAB);v[..end].to_string()}),
+            strategy_name => ("Strategy", |v:&String| {let end = v.len().min(15);v[..end].to_string()}),
             bt_return => ("Return", |v| format!("{:.2}%", v)),
             exposure_time => ("Exp time", |v| format!("{:.2}%", v*100.)),
             trades_nr => ("Trades #", |v| format!("{}", v)),
@@ -133,14 +133,14 @@ pub fn report_horizontal(metrics: &[&Metrics]){
         item.print_horizontally();
     }
 }
-*/
+*//*
 pub fn report_horizontal(backtests: &[&Backtest]){
     for item in backtests{
         println!("Backtesting period {} - {} ({} days)",item.quotes.datetime.first().unwrap().date_naive(),item.quotes.datetime.last().unwrap().date_naive(),
         (*item.quotes.datetime.last().unwrap()-item.quotes.datetime.first().unwrap()).num_days());
         item.metrics.print_horizontally();
     }
-}
+}*/
 
 pub fn report_horizontal_arc(backtests: &[&Backtest_arc]){
     for item in backtests{
@@ -179,7 +179,7 @@ pub fn report_vertical(metrics: &[&Metrics]) {
     print_field!("Max Drawdown", metrics, |i:&Metrics| i.max_drawd, |s| format!("{:.2}%",s*100.), TAB);
     print_field!("Sharpe r", metrics, |i:&Metrics| i.sharpe, |s| format!("{:.2}",s*252f64.sqrt()), TAB);
     println!("{}","_".repeat(100));
-}*/
+}*//*
 pub fn report_vertical(backtests: &[&Backtest]) {
     println!("{}","_".repeat(100));
     print_field!("Start Date", backtests, |i:&Backtest| Some(i.quotes.datetime.first().unwrap().date_naive().to_string()), |s|  s, TAB);
@@ -200,7 +200,7 @@ pub fn report_vertical(backtests: &[&Backtest]) {
     for (index, item) in backtests.iter().enumerate(){
         item.print_config(index);
     }
-}
+}*/
 pub fn report_vertical_arc(backtests: &[&Backtest_arc]) {
     println!("{}", "_".repeat(100));
     print_field!("Start Date", backtests, |i:&Backtest_arc| Some(i.strategy.data.datetime.first().unwrap().date_naive().to_string()), |s|  s, TAB);

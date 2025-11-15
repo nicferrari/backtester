@@ -33,7 +33,8 @@ pub fn set_config(cfg: Config) {
 ///     let cfg = get_config();
 ///     println!("Execution time modified to {:?}",cfg.execution_time);
 pub fn get_config() -> Config {
-    CONFIG.read().unwrap().clone().unwrap_or_else(Config::default)
+    //CONFIG.read().unwrap().clone().unwrap_or_else(Config::default)
+    CONFIG.read().unwrap().clone().unwrap_or_default()
 }
 
 /// Applies a custom update to the global config.

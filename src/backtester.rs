@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::env;
 use csv::Writer;
 use std::error::Error;
-use crate::strategies::Strategy;
+//use crate::strategies::Strategy;
 use crate::datas::Data;
 use crate::orders::Order;
-
+/*
 ///To create a Backtest use Backtest::new()
 #[derive(Clone)]
 pub struct Backtest{
@@ -209,4 +209,4 @@ impl Backtest{
                 println!("Backtesting saved as = {:?}",env::current_dir()?.into_os_string().into_string().unwrap()+"\\"+filename);
                 Ok(())
     }
-}
+}*/

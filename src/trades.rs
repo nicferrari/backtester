@@ -1,14 +1,14 @@
 //#![allow(deprecated)]
-use chrono::{DateTime, Duration, FixedOffset};
-use crate::backtester::Backtest;
+//use chrono::{DateTime, Duration, FixedOffset};
+//use crate::backtester::Backtest;
 use crate::broker::{Broker, Status};
 use crate::config::{Config, get_config};
 use crate::datas::Data;
 use crate::metrics::Metrics;
-use crate::orders::Order;
-use crate::strategies::{Strategy,Strategy_arc};
+//use crate::orders::Order;
+use crate::strategies::{Strategy_arc};
 use std::sync::Arc;
-
+/*
 #[deprecated]
 pub struct TradeList{
     trades:Vec<Trade>,
@@ -24,7 +24,8 @@ pub struct Trade{
     pl:f64,
     pl_max:f64,
     pl_min:f64,
-}
+}*/
+/*
 #[deprecated]
 ///Produce the list of trades executed by the strategy
 pub fn trade_list(backtest: Backtest)->TradeList{
@@ -92,7 +93,8 @@ pub fn trade_list(backtest: Backtest)->TradeList{
         trades[i].pl);
     }
     TradeList{trades}
-}
+}*/
+/*
 #[deprecated]
 pub fn trade_list_from_broker (broker: Broker, quotes: Data, strategy: Strategy)->TradeList{
     let indices:Vec<usize> = broker.status.iter().enumerate().filter_map(|(i,v)| if *v == Status::Executed {Some(i)} else {None}).collect();
@@ -112,7 +114,8 @@ pub fn trade_list_from_broker (broker: Broker, quotes: Data, strategy: Strategy)
         pl_min:((quotes.low[i..=j].iter().copied().reduce(f64::min).unwrap())/quotes.open[i]-1.)*100.*strategy.choices[i-1].sign() as f64,
     }).collect();
     TradeList{trades}
-}
+}*/
+/*
 #[deprecated(note="old, to be replaced")]
 pub fn report_trade(trades_list: TradeList){
     for i in 0..trades_list.trades.len(){
@@ -133,13 +136,13 @@ pub fn report_trade(trades_list: TradeList){
     println!("Worst trade = {:.2}%",worst_trade.unwrap().pl);
     println!("Average profit/loss = {:.2}%",average_pl);
     println!("Average trade duration = {:.5} days",format!("{average_duration}"));
-}
+}*/
 ///TradeIndices: a single trade with indices of moment of open, close and position within the Backtest
 #[derive(Clone)]
 pub struct TradeIndices{
-    position:usize,
-    open_index:usize,
-    close_index: usize,
+    pub(crate) position:usize,
+    pub(crate) open_index:usize,
+    pub(crate) close_index: usize,
 }
 ///A vector of all TradeIndices in a Backtest
 #[derive(Clone)]
@@ -156,6 +159,7 @@ pub fn trade_indices_from_broker(broker: &Broker)->TradesIndices{
 }
 
 impl TradeIndices{
+    /*
     pub fn print(&self, data:Data, strategy: Strategy, cfg:Config){
         print!("Trade {} - {:?}/{:?}",self.position+1,data.datetime[self.open_index].date_naive(),data.datetime[self.close_index].date_naive());
         print!(" ({} days)",self.calc_duration(data.clone()));
@@ -169,7 +173,7 @@ impl TradeIndices{
 
         print!(" (max {:.2}% min {:.2}%)",max_pl.max(min_pl),max_pl.min(min_pl));
         println!();
-    }
+    }*/
     pub fn print_arc(&self, strategy: Strategy_arc, cfg:Config){
         print!("Trade {} - {:?}/{:?}",self.position+1,strategy.data.datetime[self.open_index].date_naive(),strategy.data.datetime[self.close_index].date_naive());
         print!(" ({} days)",self.calc_duration_arc(strategy.data.clone()));
@@ -178,26 +182,27 @@ impl TradeIndices{
         print!(", p&l {:.2}%",self.calc_pl_arc(strategy.clone(),cfg.clone()));
         //        let max_pl = ((data.high[self.open_index..=self.close_index].iter().copied().reduce(f64::max).unwrap())/data.open[self.open_index]/(1.+cfg.commission_rate)).ln()*100.*strategy.choices[self.open_index-1].sign() as f64;
         //        let min_pl = ((data.low[self.open_index..=self.close_index].iter().copied().reduce(f64::min).unwrap())/data.open[self.open_index]/(1.+cfg.commission_rate)).ln()*100.*strategy.choices[self.open_index-1].sign() as f64;
-        let max_pl = strategy.choices[self.open_index - 1].sign() as f64*((strategy.data.high[self.open_index..=self.close_index].iter().copied().reduce(f64::max).unwrap())/strategy.data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100. as f64;
-        let min_pl = strategy.choices[self.open_index - 1].sign() as f64*((strategy.data.low[self.open_index..=self.close_index].iter().copied().reduce(f64::min).unwrap())/strategy.data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100. as f64;
+        let max_pl = strategy.choices[self.open_index - 1].sign() as f64*((strategy.data.high[self.open_index..=self.close_index].iter().copied().reduce(f64::max).unwrap())/strategy.data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100.;
+        let min_pl = strategy.choices[self.open_index - 1].sign() as f64*((strategy.data.low[self.open_index..=self.close_index].iter().copied().reduce(f64::min).unwrap())/strategy.data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100.;
 
         print!(" (max {:.2}% min {:.2}%)",max_pl.max(min_pl),max_pl.min(min_pl));
         println!();
-    }
+    }/*
     fn calc_pl(&self, data: Data, strategy: Strategy, cfg:Config) -> f64 {
         //strategy.choices[self.open_index-1].sign() as f64 *(data.open[self.close_index]/data.open[self.open_index]-1.)*100.
         //let cfg = get_config();
         strategy.choices[self.open_index-1].sign() as f64 *(data.open[self.close_index]/data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100.
-    }
+    }*/
     fn calc_pl_arc(&self, strategy: Strategy_arc, cfg:Config) -> f64 {
         //strategy.choices[self.open_index-1].sign() as f64 *(data.open[self.close_index]/data.open[self.open_index]-1.)*100.
         //let cfg = get_config();
-        strategy.choices[self.open_index-1].sign() as f64 *(strategy.data.open[self.close_index]/strategy.data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100.
+        //strategy.choices[self.open_index-1].sign() as f64 *(strategy.data.open[self.close_index]/strategy.data.open[self.open_index]/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100.
+        strategy.choices[self.open_index-1].sign() as f64 *(cfg.execution_time.to_quotes_arc(strategy.data.clone(),self.close_index)/cfg.execution_time.to_quotes_arc(strategy.data.clone(),self.open_index)/(1.+cfg.commission_rate).powi(2*strategy.choices[self.open_index - 1].sign() as i32)).ln()*100.
     }
 
 }
 
-impl TradesIndices{
+impl TradesIndices{/*
     pub fn print(&self, data: Data, strategy: Strategy, cfg:Config){
         println!("\nTrade stats");
         println!("Trades  = {}",self.indices.len());
@@ -210,20 +215,20 @@ impl TradesIndices{
         println!("Worst trade = {:.2}%",min_pl);
         println!("Average p&l = {:.2}%",average_pl);
         println!("Average trade duration = {:.2} days",self.calc_duration(data.clone()));
-    }
+    }/**/
     pub fn print_all_trades(&self, data:Data, strategy: Strategy, cfg:Config){
         println!("\nTrade list");
         for i in &self.indices{
             i.print(data.clone(), strategy.clone(), cfg.clone());
         }
-    }
+    }*/
     pub fn print_all_trades_arc(&self, strategy: Strategy_arc, cfg:Config){
         println!("\nTrade list");
         for i in &self.indices{
             i.print_arc(strategy.clone(), cfg.clone());
         }
     }
-
+/*
     pub fn calculate_metrics(&self, metrics: &mut Metrics, data: Data, strategy: Strategy){
         //let mut metrics = Metrics::default();
         let cfg=get_config();
@@ -240,7 +245,7 @@ impl TradesIndices{
         metrics.win_rate = Some(win_rate);
         metrics.average_pl = Some(average_pl);
         metrics.avg_duration = Some(average_duration);
-    }
+    }*/
     pub fn calculate_metrics_arc(&self, metrics: &mut Metrics, strategy: Strategy_arc){
         //let mut metrics = Metrics::default();
         let cfg=get_config();
@@ -262,22 +267,22 @@ impl TradesIndices{
 }
 
 pub trait TradeStats {
-    fn calc_duration(&self, data: Data)->f64;
+//    fn calc_duration(&self, data: Data)->f64;
     fn calc_duration_arc(&self, data:Arc<Data>)->f64;
 }
 
 impl TradeStats for TradeIndices{
-    fn calc_duration(&self, data: Data) -> f64{
+    /*fn calc_duration(&self, data: Data) -> f64{
         (data.datetime[self.close_index]-data.datetime[self.open_index]).num_days() as f64
-    }
+    }*/
     fn calc_duration_arc(&self, data:Arc<Data>)->f64{
         (data.datetime[self.close_index]-data.datetime[self.open_index]).num_days() as f64
     }
 }
-impl TradeStats for TradesIndices{
+impl TradeStats for TradesIndices{/*
     fn calc_duration(&self, data: Data) -> f64 {
         self.indices.iter().map(|i|i.calc_duration(data.clone())).sum::<f64>()/self.indices.len() as f64
-    }
+    }*/
     fn calc_duration_arc(&self, data: Arc<Data>) -> f64 {
         self.indices.iter().map(|i|i.calc_duration_arc(data.clone())).sum::<f64>()/self.indices.len() as f64
     }

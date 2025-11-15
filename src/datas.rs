@@ -1,5 +1,5 @@
 use std::env;
-use chrono::{DateTime, Duration, FixedOffset, TimeZone};
+use chrono::{DateTime, FixedOffset, TimeZone};
 use csv::{Writer};
 use yahoo_finance_api as yahoo;
 use yahoo_finance_api::{Quote};
@@ -13,7 +13,7 @@ fn download_data(ticker:&str, interval:&str, range:&str) ->Result<Vec<Quote>,Box
     let provider = yahoo::YahooConnector::new().unwrap();
     let response = tokio_test::block_on(provider.get_quote_range(ticker, interval, range)).unwrap();
     let quotes = response.quotes().unwrap();
-    return Ok(quotes);
+    Ok(quotes)
 }
 ///struct to contain all market data (ticker + OHLCV)
 #[derive(Clone, Serialize)]
@@ -48,7 +48,7 @@ fn serialize_datetime_vec<S>(datetimes: &Vec<DateTime<FixedOffset>>, serializer:
     seq.end()
 }
 
-impl Data{
+impl Data{/*
     ///retrieve OHLC data from yahoo
     pub fn new_from_yahoo(ticker:&str, interval:&str, range:&str) ->Result<Self, Box<dyn Error>>{
         let quotes = download_data(&ticker, interval, range)?;
@@ -69,10 +69,10 @@ impl Data{
             close:closes,
             volume:volumes,
         })
-    }
-
+    }*/
+    ///retrieve OHLC data from yahoo
     pub fn new_from_yahoo_arc(ticker:&str, interval:&str, range:&str) ->Result<Arc<Self>, Box<dyn Error>>{
-        let quotes = download_data(&ticker, interval, range)?;
+        let quotes = download_data(ticker, interval, range)?;
         let timestamps:Vec<u64> = quotes.iter().map(|s|s.timestamp).collect();
         let yahoo_datetimes: Vec<DateTime<FixedOffset>> = timestamps.iter().map(|&ts|{FixedOffset::east_opt(0).unwrap().timestamp_opt(ts as i64,0).unwrap()}).collect();
         let opens:Vec<f64> = quotes.iter().map(|s|s.open).collect();
@@ -106,7 +106,7 @@ impl Data{
         }
         wrt.flush().expect("cannot write file");
         Ok(())
-    }
+    }/*
     ///load data from csv OHLC format at specified path
     pub fn load(path:&str, ticker:&str)->Result<Self,Box<dyn Error>>{
         let path2 = env::current_dir();
@@ -142,12 +142,12 @@ impl Data{
             close,
             volume,
         })
-    }
+    }*/
 
     ///load data from csv OHLC format at specified path
     pub fn load_arc(path:&str, ticker:&str)->Result<Arc<Self>,Box<dyn Error>>{
         let path2 = env::current_dir();
-        let mut rdr = csv::Reader::from_path(path).expect(&format!("couldn't read file in {:?}",path2));
+        let mut rdr = csv::Reader::from_path(path).unwrap_or_else(|_| panic!("couldn't read file in {:?}",path2));
         let mut datetime= Vec::new();
         let mut open = Vec::new();
         let mut high = Vec::new();
@@ -180,7 +180,7 @@ impl Data{
             volume,
         }))
     }
-
+/*
     pub fn ticker(&self)->&str{
         return &*self.ticker;
     }
@@ -195,7 +195,8 @@ impl Data{
     pub fn close(&self)->Vec<f64>{
         return self.close.clone();
     }
-
+*/
+    /*
     pub fn ret(&self)->f64{
         println!("{}",self.timestamps().first().unwrap());
         println!("{}",self.timestamps().last().unwrap());
@@ -243,5 +244,5 @@ impl Data{
             close: self.close[..i].to_vec(),
             volume: self.volume[..i].to_vec(),
         }
-    }
+    }*/
 }

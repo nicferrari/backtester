@@ -11,10 +11,10 @@ To get started:
 - Import the necessary modules:
 ```rust
 use std::error::Error;
-use rs_backtester::backtester::{Backtest, Commission};
+use rs_backtester::backtester::Backtest;
 use rs_backtester::datas::Data;
-use rs_backtester::strategies::{sma_cross};
-use rs_backtester::report::{report};
+use rs_backtester::strategies::sma_cross;
+use rs_backtester::report::report_horizontal;
 ```
 - Define an instance of the Data class. Market data can be retrieved either through yahoo-finance or read from
 a CSV file
@@ -43,7 +43,7 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
     ```
   - you can see the list of trades
     ```rust
-    trade_list(sma_cross_tester);
+    sma_cross_tester.print_all_trades();
     ```
   - you can chart it (with indicators)
     ```rust
@@ -56,6 +56,10 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
     ```
   - you can also compare multiple strategies at once
   - and you can also play with your strategy modifying it by inverting it or transform it in long or short-only
+
+### What's new
+- 0.1.4 introduces several reworks, optimizations and clean-ups 
+- More details in the changelog
 
 ### Examples
 - <B>backtesting</B>: how to test a strategy, with and without commission fees
