@@ -1,6 +1,8 @@
 # rs-backtester
 [![Latest version](https://img.shields.io/crates/v/rs-backtester.svg)](https://crates.io/crates/rs-backtester)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/nicferrari/rs-backtester/blob/master/LICENSE-APACHE-2.0)
+[![Documentation](https://docs.rs/rs-backtester/badge.svg)](https://docs.rs/rs-backtester)
+
 
 rs-backtester is a financial backtesting library entirely written  in Rust with the purpose of being
 easy-to-use yet flexible enough to allow a quick implementation of different strategies
@@ -28,9 +30,9 @@ let quotes = Data::new_from_yahoo("GOOG","1d","6mo")?;
 ```
 - Create a function which returns a Strategy or use one provided by the library.<BR>
 A Strategy is basically a vector of Choices (e.g. BUY, SHORTSELL, ...)
-and the indicator used
+and the indicator(s) used
 ```rust
-let sma_cross_strategy = sma_cross(quotes.clone(), 10,20);
+let sma_cross_strategy = sma_cross(quotes.clone(), 10, 20);
 ```
 - Create an instance of the Backtest class
 ```rust
@@ -49,17 +51,13 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
     ```rust
     plot(sma_cross_tester,plot_config)?;
     ``` 
-  <img src="https://github.com/nicferrari/rs-backtester/blob/master/plot.png" width="400"/><BR>
+  <img src="https://raw.githubusercontent.com/nicferrari/rs-backtester/master/plot.png" width="400"/><BR>
   - you can save it to CSV for inspection
     ```rust
     sma_cross_bt.to_csv("bt.csv")?;
     ```
   - you can also compare multiple strategies at once
   - and you can also play with your strategy modifying it by inverting it or transform it in long or short-only
-
-### What's new
-- 0.1.4 introduces several reworks, optimizations and clean-ups 
-- More details in the changelog
 
 ### Examples
 - <B>backtesting</B>: how to test a strategy, with and without commission fees
@@ -69,6 +67,10 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
 - <B>strategy</B>: how to build a custom strategy
 - <B>log</B>: how to log (to csv) parts or whole Backtest
 - <B>chart</B>: how to save a plot (.png) of the backtest
+
+### What's new
+- 0.1.4 introduces several reworks, optimizations and clean-ups
+- More details in the changelog
 
 ## Disclaimer <br>
 This software is provided for educational and research purposes only.<br>
