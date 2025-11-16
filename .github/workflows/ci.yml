@@ -29,13 +29,6 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install fontconfig
 
-      # Windows dependencies
-      - name: Install system dependencies (Windows only)
-        if: runner.os == 'Windows'
-        run: |
-          choco install -y pkgconfiglite
-          choco install -y fontconfig
-
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@v2
 
