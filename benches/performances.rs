@@ -7,7 +7,9 @@ fn backtesting_calc(c: &mut Criterion) {
     let filename = "test_data//NVDA.csv";
     let quotes = Data::load(filename, "NVDA").unwrap();
     let sma_cross_strategy_arc = sma_cross(quotes.clone(), 10, 20);
-    c.bench_function("backtesting calculation", |b| b.iter(|| Backtest::new(sma_cross_strategy_arc.clone(),100_000.)));
+    c.bench_function("backtesting calculation", |b| {
+        b.iter(|| Backtest::new(sma_cross_strategy_arc.clone(), 100_000.))
+    });
 }
 
 criterion_group!(benches, backtesting_calc);

@@ -14,7 +14,7 @@ To get started:
 ```rust
 use std::error::Error;
 use rs_backtester::backtester::Backtest;
-use rs_backtester::datas::Data;
+use rs_backtester::data::Data;
 use rs_backtester::strategies::sma_cross;
 use rs_backtester::report::report_horizontal;
 ```
@@ -57,7 +57,13 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
     sma_cross_bt.to_csv("bt.csv")?;
     ```
   - you can also compare multiple strategies at once
+    ```rust
+    report_vertical(&[&buynhold_bt, &sma_bt, &sma_cross_bt, &rsi_bt]);
+    ```
   - and you can also play with your strategy modifying it by inverting it or transform it in long or short-only
+    ```rust
+    let sma_cross_long = sma_cross_strategy.long_only();
+    ```
 
 ### Examples
 - <B>backtesting</B>: how to test a strategy, with and without commission fees
