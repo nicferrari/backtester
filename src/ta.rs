@@ -1,39 +1,10 @@
-use crate::datas::Data;
+use crate::data::Data;
 use std::sync::Arc;
-/*
 ///container for checking calculation of indicator vs mktdata
-#[derive(Clone)]
-pub struct Indicator{
-    pub indicator:Vec<f64>,
-    pub quotes:Data,
-}*/
-///container for checking calculation of indicator vs mktdata
-pub struct Indicator_arc{
+pub struct Indicator {
     pub indicator:Vec<f64>,
     pub quotes:Arc<Data>,
 }
-
-/*
-impl Indicator{
-    /*
-    pub fn to_csv(&self, filename:&str)->Result<(), Box<dyn Error>>{
-        let mut wrt = Writer::from_path(filename)?;
-        let transpose_indic:Vec<Vec<String>> = self.indicator.iter().map(|e|vec![e.clone().to_string()]).collect();
-        let transpose_quote:Vec<Vec<String>> = self.quotes.close().iter().map(|e|vec![e.clone().to_string()]).collect();
-        wrt.serialize(("close","indicator"))?;
-        for (col1,col2) in transpose_quote.iter().zip(transpose_indic.iter()){
-            wrt.serialize((col1,col2))?;
-        }
-        wrt.flush()?;
-        Ok(())
-    }*/
-    pub fn quotes(&self)->Data{
-        return self.quotes.clone();
-    }
-    pub fn indicator(&self)->Vec<f64>{
-        return self.indicator.clone();
-    }
-}*/
 ///calculate simple moving average of period x
 ///use close data
 /// todo! generalize to OHLC

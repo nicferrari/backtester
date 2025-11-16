@@ -3,12 +3,17 @@ use std::sync::RwLock;
 use crate::broker::Execution;
 use crate::broker::Execution::AtOpen;
 
+///global configuration
+///
+/// - commission_rate = fees as a percentage. applied on both long and short trades
+/// - execution_time = currently allows only AtOpen(n) -> execution of orders will be performed at next n-th open
 #[derive(Debug, Clone)]
 pub struct Config {
     pub commission_rate: f64,
     pub execution_time:Execution,
 }
 
+///default configuration
 impl Default for Config {
     fn default() -> Self {
         Config {
@@ -26,12 +31,16 @@ pub fn set_config(cfg: Config) {
 }
 
 ///Get last updated configuration
+///
 /// Note: in case you change it you need to recall it with get_config() if you need to use last update not initial value
-///     let cfg = get_config();
-///     println!("Initial execution time {:?}",cfg.execution_time);
-///     update_config(|cfg|{cfg.execution_time=AtOpen(3)});
-///     let cfg = get_config();
-///     println!("Execution time modified to {:?}",cfg.execution_time);
+///
+/// ```no_run
+/// let cfg = get_config();
+/// println!("Initial execution time {:?}",cfg.execution_time);
+/// update_config(|cfg|{cfg.execution_time=AtOpen(3)});
+/// let cfg = get_config();
+/// println!("Execution time modified to {:?}",cfg.execution_time);
+/// ```
 pub fn get_config() -> Config {
     //CONFIG.read().unwrap().clone().unwrap_or_else(Config::default)
     CONFIG.read().unwrap().clone().unwrap_or_default()
@@ -41,17 +50,19 @@ pub fn get_config() -> Config {
 /// Initializes with default config if not set.
 ///
 /// To modify, call with:
+/// ```
 /// update_config(|cfg| {
 ///     cfg.commission_rate = 0.01;});
-///
+///```
 /// or
-///
+///```
 /// update_config(|cfg| {
 ///     *cfg = Config {
 ///         debug_mode: false,
 ///         commission_rate: 0.01,
 ///     };
 /// });
+/// ```
 ///
 pub fn update_config<F>(modifier: F)
     where

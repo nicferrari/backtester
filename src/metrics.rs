@@ -1,5 +1,5 @@
-use crate::backtester_new::{Backtest_arc};
-use crate::trades::TradesIndices;
+use crate::backtester::{Backtest};
+use crate::trades::TradeList;
 
 const TAB:usize=15;
 
@@ -20,53 +20,9 @@ pub struct Metrics {
     pub win_rate:Option<f64>,
     pub avg_duration:Option<f64>,
     //trades indices from broker
-    pub trades_indices: Option<TradesIndices>,
+    pub trades_indices: Option<TradeList>,
 }
 
-
-/*
-macro_rules! print_defined_fields {
-    ($instance:expr, { $($field:ident),* $(,)? }) => {
-        $(
-            if let Some(value) = &$instance.$field {
-                println!("{}: {:?}", stringify!($field), value);
-            }
-        )*
-    };
-}*/
-/*
-macro_rules! print_custom_fields {
-    ($instance:expr, {
-        $($field:ident => $formatter:expr),* $(,)?
-    }) => {
-        $(
-            if let Some(value) = &$instance.$field {
-                println!("{}", $formatter(value));
-            }
-        )*
-    };
-}
-*//*
-macro_rules! print_custom_row_with_headers {
-    ($instance:expr, {
-        $($field:ident => ($header:expr, $formatter:expr)),* $(,)?
-    }) => {
-        $(
-            if $instance.$field.is_some() {
-                print!("{:>width$}",$header,width=20);
-            }
-        )*
-        println!();
-        println!("{}","_".repeat(180));
-        $(
-            if let Some(val) = &$instance.$field {
-                print!("{:>width$}",$formatter(val),width=20);
-            }
-        )*
-        println!();
-    };
-}
-*/
 macro_rules! print_custom_row_with_headers_aligned {
     ($instance:expr, {
         $first_field:ident => ($first_header:expr, $first_fmt:expr),
@@ -97,17 +53,7 @@ macro_rules! print_custom_row_with_headers_aligned {
     };
 }
 
-
 impl Metrics{
-    /*
-    pub fn print_vertically(&self){
-        print_custom_fields!(self, {
-            strategy_name => |v| format!("Strategy = {}", v),
-            bt_return => |v| format!("Return = {:.2}%", v),
-            trades_nr => |v| format!("Trade # = {}", v),
-            //todo! to complete for the other fields
-        });
-    }*/
     fn print_horizontally(&self){
         println!("{}","_".repeat(12*TAB+3*12));
         print_custom_row_with_headers_aligned!(self, {
@@ -127,29 +73,14 @@ impl Metrics{
         println!("{}","_".repeat(12*TAB+3*12));
     }
 }
-/*
-pub fn report_horizontal(metrics: &[&Metrics]){
-    for item in metrics{
-        item.print_horizontally();
-    }
-}
-*//*
-pub fn report_horizontal(backtests: &[&Backtest]){
-    for item in backtests{
-        println!("Backtesting period {} - {} ({} days)",item.quotes.datetime.first().unwrap().date_naive(),item.quotes.datetime.last().unwrap().date_naive(),
-        (*item.quotes.datetime.last().unwrap()-item.quotes.datetime.first().unwrap()).num_days());
-        item.metrics.print_horizontally();
-    }
-}*/
 
-pub fn report_horizontal_arc(backtests: &[&Backtest_arc]){
+pub fn report_horizontal(backtests: &[&Backtest]){
     for item in backtests{
         println!("Backtesting period {} - {} ({} days)",item.strategy.data.datetime.first().unwrap().date_naive(),item.strategy.data.datetime.last().unwrap().date_naive(),
                  (*item.strategy.data.datetime.last().unwrap()-item.strategy.data.datetime.first().unwrap()).num_days());
         item.metrics.print_horizontally();
     }
 }
-
 
 macro_rules! print_field {
     ($label:expr, $items:expr, $getter:expr, $formatter:expr, $width:expr) => {
@@ -163,27 +94,10 @@ macro_rules! print_field {
         println!();
     };
 }
-/*
-pub fn report_vertical(metrics: &[&Metrics]) {
-    println!("{}","_".repeat(100));
-    print_field!("Ticker", metrics, |i:&Metrics| i.ticker.clone(), |s|  s, TAB);
-    print_field!("Strategy", metrics, |i:&Metrics| i.strategy_name.clone(), |s|  s, TAB);
-    print_field!("Return", metrics, |i:&Metrics| i.bt_return, |r| format!("{:.2}%", r), TAB);
-    print_field!("Exp time", metrics, |i:&Metrics| i.exposure_time, |s| format!("{:.2}%",s*100.), TAB);
-    print_field!("Trades #", metrics, |i:&Metrics| i.trades_nr, |a| a, TAB);
-    print_field!("Max P&L", metrics, |i:&Metrics| i.max_pl, |s| format!("{:.2}%",s), TAB);
-    print_field!("Min P&L", metrics, |i:&Metrics| i.min_pl, |s| format!("{:.2}%",s), TAB);
-    print_field!("Avg P&L", metrics, |i:&Metrics| i.average_pl, |s| format!("{:.2}%",s), TAB);
-    print_field!("Win rate", metrics, |i:&Metrics| i.win_rate, |s| format!("{:.2}%",s*100.), TAB);
-    print_field!("Avg dur (d)", metrics, |i:&Metrics| i.avg_duration, |s| format!("{:.2}",s), TAB);
-    print_field!("Max Drawdown", metrics, |i:&Metrics| i.max_drawd, |s| format!("{:.2}%",s*100.), TAB);
-    print_field!("Sharpe r", metrics, |i:&Metrics| i.sharpe, |s| format!("{:.2}",s*252f64.sqrt()), TAB);
-    println!("{}","_".repeat(100));
-}*//*
 pub fn report_vertical(backtests: &[&Backtest]) {
-    println!("{}","_".repeat(100));
-    print_field!("Start Date", backtests, |i:&Backtest| Some(i.quotes.datetime.first().unwrap().date_naive().to_string()), |s|  s, TAB);
-    print_field!("End Date", backtests, |i:&Backtest| Some(i.quotes.datetime.last().unwrap().date_naive().to_string()), |s|  s, TAB);
+    println!("{}", "_".repeat(100));
+    print_field!("Start Date", backtests, |i:&Backtest| Some(i.strategy.data.datetime.first().unwrap().date_naive().to_string()), |s|  s, TAB);
+    print_field!("End Date", backtests, |i:&Backtest| Some(i.strategy.data.datetime.last().unwrap().date_naive().to_string()), |s|  s, TAB);
     print_field!("Ticker", backtests, |i:&Backtest| i.metrics.ticker.clone(), |s|  s, TAB);
     print_field!("Strategy", backtests, |i:&Backtest| i.metrics.strategy_name.clone(), |s|  s, TAB);
     print_field!("Return", backtests, |i:&Backtest| i.metrics.bt_return, |r| format!("{:.2}%", r), TAB);
@@ -196,30 +110,8 @@ pub fn report_vertical(backtests: &[&Backtest]) {
     print_field!("Avg dur (d)", backtests, |i:&Backtest| i.metrics.avg_duration, |s| format!("{:.2}",s), TAB);
     print_field!("Max Drawdown", backtests, |i:&Backtest| i.metrics.max_drawd, |s| format!("{:.2}%",s*100.), TAB);
     print_field!("Sharpe r", backtests, |i:&Backtest| i.metrics.sharpe, |s| format!("{:.2}",s*252f64.sqrt()), TAB);
-    println!("{}","_".repeat(100));
-    for (index, item) in backtests.iter().enumerate(){
-        item.print_config(index);
-    }
-}*/
-pub fn report_vertical_arc(backtests: &[&Backtest_arc]) {
-    println!("{}", "_".repeat(100));
-    print_field!("Start Date", backtests, |i:&Backtest_arc| Some(i.strategy.data.datetime.first().unwrap().date_naive().to_string()), |s|  s, TAB);
-    print_field!("End Date", backtests, |i:&Backtest_arc| Some(i.strategy.data.datetime.last().unwrap().date_naive().to_string()), |s|  s, TAB);
-    print_field!("Ticker", backtests, |i:&Backtest_arc| i.metrics.ticker.clone(), |s|  s, TAB);
-    print_field!("Strategy", backtests, |i:&Backtest_arc| i.metrics.strategy_name.clone(), |s|  s, TAB);
-    print_field!("Return", backtests, |i:&Backtest_arc| i.metrics.bt_return, |r| format!("{:.2}%", r), TAB);
-    print_field!("Exp time", backtests, |i:&Backtest_arc| i.metrics.exposure_time, |s| format!("{:.2}%",s*100.), TAB);
-    print_field!("Trades #", backtests, |i:&Backtest_arc| i.metrics.trades_nr, |a| a, TAB);
-    print_field!("Max P&L", backtests, |i:&Backtest_arc| i.metrics.max_pl, |s| format!("{:.2}%",s), TAB);
-    print_field!("Min P&L", backtests, |i:&Backtest_arc| i.metrics.min_pl, |s| format!("{:.2}%",s), TAB);
-    print_field!("Avg P&L", backtests, |i:&Backtest_arc| i.metrics.average_pl, |s| format!("{:.2}%",s), TAB);
-    print_field!("Win rate", backtests, |i:&Backtest_arc| i.metrics.win_rate, |s| format!("{:.2}%",s*100.), TAB);
-    print_field!("Avg dur (d)", backtests, |i:&Backtest_arc| i.metrics.avg_duration, |s| format!("{:.2}",s), TAB);
-    print_field!("Max Drawdown", backtests, |i:&Backtest_arc| i.metrics.max_drawd, |s| format!("{:.2}%",s*100.), TAB);
-    print_field!("Sharpe r", backtests, |i:&Backtest_arc| i.metrics.sharpe, |s| format!("{:.2}",s*252f64.sqrt()), TAB);
     println!("{}", "_".repeat(100));
     for (index, item) in backtests.iter().enumerate() {
         item.print_config(index);
     }
 }
-

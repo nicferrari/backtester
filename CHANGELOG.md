@@ -11,6 +11,7 @@
 - rework of reports
 - rework of examples
 - rework of tests
+- removal of log. Now logs are only CSV based (enhanced from previous versions)
 
 ## [0.1.3]
 - Possibility to display the list of trades produced by a strategy

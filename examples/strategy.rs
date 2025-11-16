@@ -1,20 +1,20 @@
 use std::error::Error;
 use std::sync::Arc;
-use rs_backtester::datas::Data;
-use rs_backtester::strategies::{Strategy_arc};
+use rs_backtester::data::Data;
+use rs_backtester::strategies::{Strategy};
 use rs_backtester::orders::Order::{BUY,SHORTSELL,NULL};
 extern crate rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
-use rs_backtester::backtester_new::Backtest_arc;
-use rs_backtester::metrics::report_horizontal_arc;
+use rs_backtester::backtester::Backtest;
+use rs_backtester::metrics::report_horizontal;
 
 
 pub fn main() -> Result<(),Box<dyn Error>>{
     //example to show how to build a custom strategy
-    let quotes = Data::new_from_yahoo_arc("PLTR","1d","6mo")?;
+    let quotes = Data::new_from_yahoo("PLTR", "1d", "6mo")?;
 
-    pub fn random_strategy(quotes:Arc<Data>)->Strategy_arc{
+    pub fn random_strategy(quotes:Arc<Data>)-> Strategy {
         let length = quotes.datetime.len();
         let mut choices = vec![NULL;length];
         let name = "random strategy".to_string();
@@ -24,7 +24,7 @@ pub fn main() -> Result<(),Box<dyn Error>>{
             let mut rng = thread_rng();
             choices[i] = *rnd_orders.choose(&mut rng).unwrap();
         }
-        Strategy_arc{
+        Strategy {
             name,
             choices,
             indicator,
@@ -33,7 +33,7 @@ pub fn main() -> Result<(),Box<dyn Error>>{
     }
 
     let rnd_strategy = random_strategy(quotes.clone());
-    let random_backtester = Backtest_arc::new(rnd_strategy, 1e5);
-    report_horizontal_arc(&[&random_backtester]);
+    let random_backtester = Backtest::new(rnd_strategy, 1e5);
+    report_horizontal(&[&random_backtester]);
     Ok(())
 }
