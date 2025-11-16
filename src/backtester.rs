@@ -1,17 +1,17 @@
-use std::error::Error;
-use std::time::Instant;
 use crate::broker;
 use crate::broker::Broker;
 use crate::config::{Config, CONFIG};
 use crate::metrics::Metrics;
-use crate::strategies::{Strategy};
+use crate::strategies::Strategy;
 use crate::trades::trade_indices_from_broker;
-use crate::utilities::{SerializeAsCsv, write_combined_csv};
+use crate::utilities::{write_combined_csv, SerializeAsCsv};
+use std::error::Error;
+use std::time::Instant;
 pub struct Backtest {
     pub strategy: Strategy,
     pub(crate) broker: Broker,
     pub metrics: Metrics,
-    pub local_config:Option<Config>,
+    pub local_config: Option<Config>,
 }
 
 impl Backtest {
@@ -25,7 +25,10 @@ impl Backtest {
         let start = Instant::now();
         let broker = broker::calculate(&strategy, initial_account);
         let duration = start.elapsed();
-        println!("\x1b[34mBacktesting for {} calculated in {:?}\x1b[0m", strategy.name, duration);
+        println!(
+            "\x1b[34mBacktesting for {} calculated in {:?}\x1b[0m",
+            strategy.name, duration
+        );
         let mut metrics = Metrics::default();
         broker.calculate_metrics(&mut metrics);
         let trades = trade_indices_from_broker(&broker);
@@ -33,7 +36,10 @@ impl Backtest {
         //adds TradesIndices to Metrics
         broker.trade_indices(&mut metrics);
         let duration = start.elapsed();
-        println!("\x1b[34mBacktesting and metrics for { } calculated in {:?}\x1b[0m", strategy.name, duration);
+        println!(
+            "\x1b[34mBacktesting and metrics for { } calculated in {:?}\x1b[0m",
+            strategy.name, duration
+        );
         Backtest {
             strategy,
             broker,
@@ -42,24 +48,36 @@ impl Backtest {
         }
     }
     ///save Backtest to csv
-    pub fn to_csv(&self, filepath:&str) ->Result<(),Box<dyn Error>>{
-        let datasets: Vec<&dyn SerializeAsCsv> = vec![&self.strategy.data, &self.strategy, &self.broker];
+    pub fn to_csv(&self, filepath: &str) -> Result<(), Box<dyn Error>> {
+        let datasets: Vec<&dyn SerializeAsCsv> =
+            vec![&self.strategy.data, &self.strategy, &self.broker];
         write_combined_csv(filepath, &datasets[..])?;
         Ok(())
     }
     ///print configuration used in a Backtest (at the time of initialization)
-    pub fn print_config(&self, index:usize){
-        print!("\x1b[34m{}){} - config:",index,self.strategy.name);
-        print!(" commission rate {:.2}%,",self.local_config.clone().unwrap().commission_rate*100.);
-        println!(" execution time = {:?}\x1b[0m",self.local_config.clone().unwrap().execution_time);
+    pub fn print_config(&self, index: usize) {
+        print!("\x1b[34m{}){} - config:", index, self.strategy.name);
+        print!(
+            " commission rate {:.2}%,",
+            self.local_config.clone().unwrap().commission_rate * 100.
+        );
+        println!(
+            " execution time = {:?}\x1b[0m",
+            self.local_config.clone().unwrap().execution_time
+        );
     }
     ///outputs the list of all trades in a Backtest
-    pub fn print_all_trades(&self){
-        self.metrics.trades_indices.clone().unwrap().print_all_trades(self.strategy.clone(), self.local_config.clone().unwrap());
+    pub fn print_all_trades(&self) {
+        self.metrics
+            .trades_indices
+            .clone()
+            .unwrap()
+            .print_all_trades(self.strategy.clone(), self.local_config.clone().unwrap());
     }
     ///outputs details of a single trade (identified by index in the trade list)
-    pub fn print_single_trade(&self, position: usize){
+    pub fn print_single_trade(&self, position: usize) {
         //todo! check position (-1: starting from 1 instead of 0: change?)
-        self.metrics.trades_indices.clone().unwrap().indices[position-1].print(self.strategy.clone(), self.local_config.clone().unwrap());
+        self.metrics.trades_indices.clone().unwrap().indices[position - 1]
+            .print(self.strategy.clone(), self.local_config.clone().unwrap());
     }
 }

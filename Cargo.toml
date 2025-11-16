@@ -19,3 +19,8 @@ plotly = "0.8.0"
 
 [dev-dependencies]
 rand = "0.8.5"
+criterion = "0.7.0"
+
+[[bench]]
+name = "performances"
+harness = false

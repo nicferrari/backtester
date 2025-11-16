@@ -1,18 +1,21 @@
+use crate::broker::Broker;
 use crate::data::Data;
-use crate::strategies::{Strategy};
-use std::sync::Arc;
+use crate::strategies::Strategy;
+use crate::trades::TradeList;
 use csv::Writer;
 use std::error::Error;
-use crate::broker::Broker;
-use crate::trades::TradeList;
+use std::sync::Arc;
 
 pub trait SerializeAsCsv {
     fn headers(&self) -> Vec<String>;
     fn to_rows(&self) -> Vec<Vec<String>>;
-    fn to_csv(&self, file_path: &str)-> Result<(), Box<dyn Error>>;
+    fn to_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
 }
 
-pub fn write_combined_csv(file_path: &str, datasets: &[&dyn SerializeAsCsv]) -> Result<(), Box<dyn Error>> {
+pub fn write_combined_csv(
+    file_path: &str,
+    datasets: &[&dyn SerializeAsCsv],
+) -> Result<(), Box<dyn Error>> {
     let mut all_headers = Vec::new();
     let mut all_rows: Vec<Vec<String>> = Vec::new();
 
@@ -22,7 +25,11 @@ pub fn write_combined_csv(file_path: &str, datasets: &[&dyn SerializeAsCsv]) -> 
     }
 
     // Determine max row count
-    let max_len = datasets.iter().map(|d| d.to_rows().len()).max().unwrap_or(0);
+    let max_len = datasets
+        .iter()
+        .map(|d| d.to_rows().len())
+        .max()
+        .unwrap_or(0);
 
     // Collect rows
     for i in 0..max_len {
@@ -47,17 +54,36 @@ pub fn write_combined_csv(file_path: &str, datasets: &[&dyn SerializeAsCsv]) -> 
     wtr.flush()?;
     Ok(())
 }
-impl SerializeAsCsv for Broker{
+impl SerializeAsCsv for Broker {
     fn headers(&self) -> Vec<String> {
-        vec!["Execution".to_string(),"Status".to_string(), "Available".to_string(),"Positions".to_string(),
-             "Invested".to_string(),"Fees".to_string(),"Account".to_string(),"Cash".to_string(),"MtM".to_string(),"Networth".to_string()]
+        vec![
+            "Execution".to_string(),
+            "Status".to_string(),
+            "Available".to_string(),
+            "Positions".to_string(),
+            "Invested".to_string(),
+            "Fees".to_string(),
+            "Account".to_string(),
+            "Cash".to_string(),
+            "MtM".to_string(),
+            "Networth".to_string(),
+        ]
     }
     fn to_rows(&self) -> Vec<Vec<String>> {
         let mut rows = Vec::new();
-        for i in 0..self.execution.len(){
-           rows.push(vec![self.execution[i].to_string(), self.status[i].to_string(), self.available[i].to_string(),
-           self.position[i].to_string(),self.invested[i].to_string(),self.fees[i].to_string(),self.account[i].to_string(),self.cash[i].to_string(),
-                          self.mtm[i].to_string(),self.networth[i].to_string()]);
+        for i in 0..self.execution.len() {
+            rows.push(vec![
+                self.execution[i].to_string(),
+                self.status[i].to_string(),
+                self.available[i].to_string(),
+                self.position[i].to_string(),
+                self.invested[i].to_string(),
+                self.fees[i].to_string(),
+                self.account[i].to_string(),
+                self.cash[i].to_string(),
+                self.mtm[i].to_string(),
+                self.networth[i].to_string(),
+            ]);
         }
         rows
     }
@@ -83,7 +109,10 @@ impl SerializeAsCsv for Strategy {
         let mut rows = Vec::new();
         if let Some(indicators) = &self.indicator {
             for i in 0..self.choices.len() {
-                let mut row = vec![self.name.clone(), self.choices[i].to_string().parse().unwrap()];
+                let mut row = vec![
+                    self.name.clone(),
+                    self.choices[i].to_string().parse().unwrap(),
+                ];
                 row.extend(indicators.iter().map(|ind| ind[i].to_string()));
                 rows.push(row);
             }
@@ -141,7 +170,7 @@ impl SerializeAsCsv for TradeList {
     }
     fn to_rows(&self) -> Vec<Vec<String>> {
         let mut rows = Vec::new();
-        for i in 0..self.indices.len(){
+        for i in 0..self.indices.len() {
             rows.push(vec![
                 self.indices[i].position.to_string(),
                 self.indices[i].open_index.to_string(),

@@ -1,10 +1,10 @@
-use std::error::Error;
 use rs_backtester::backtester::Backtest;
 use rs_backtester::data::Data;
 use rs_backtester::metrics::{report_horizontal, report_vertical};
-use rs_backtester::strategies::{sma_cross};
+use rs_backtester::strategies::sma_cross;
+use std::error::Error;
 
-fn main() ->Result<(),Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let quotes = Data::new_from_yahoo("NVDA", "1d", "6mo")?;
     let sma_cross_strategy = sma_cross(quotes, 10, 20);
     let sma_cross_bt = Backtest::new(sma_cross_strategy.clone(), 100_000.);
@@ -22,6 +22,11 @@ fn main() ->Result<(),Box<dyn Error>> {
     let sma_cross_short_bt = Backtest::new(sma_cross_short, 100_000.);
     report_horizontal(&[&sma_cross_short_bt]);
     //let's compare them simultaneously
-    report_vertical(&[&sma_cross_bt,&sma_cross_inverted_bt,&sma_cross_long_bt,&sma_cross_short_bt]);
+    report_vertical(&[
+        &sma_cross_bt,
+        &sma_cross_inverted_bt,
+        &sma_cross_long_bt,
+        &sma_cross_short_bt,
+    ]);
     Ok(())
 }

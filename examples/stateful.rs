@@ -3,7 +3,7 @@ use std::error::Error;
 //use rs_backtester::orders::Order::BUY;
 //use rs_backtester::stateful::{broker, sma, sma_cross, State, OrderStatus::*, SlippageMode::*, SlippageMode};
 
-fn main() ->Result<(),Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     /*
     let quotes = Data::new_from_yahoo("PLTR","1d","6mo")?;
     let quotes2 = quotes.slice(30);

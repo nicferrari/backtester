@@ -1,10 +1,10 @@
-use std::error::Error;
 use rs_backtester::backtester::Backtest;
 use rs_backtester::data::Data;
 use rs_backtester::strategies::sma_cross;
-use rs_backtester::utilities::{SerializeAsCsv, write_combined_csv};
+use rs_backtester::utilities::{write_combined_csv, SerializeAsCsv};
+use std::error::Error;
 
-fn main() ->Result<(),Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let quotes = Data::new_from_yahoo("PLTR", "1d", "6mo")?;
     let sma_cross_strategy = sma_cross(quotes.clone(), 10, 20);
     let sma_cross_bt = Backtest::new(sma_cross_strategy.clone(), 100000f64);

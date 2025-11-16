@@ -1,7 +1,7 @@
-use once_cell::sync::Lazy;
-use std::sync::RwLock;
 use crate::broker::Execution;
 use crate::broker::Execution::AtOpen;
+use once_cell::sync::Lazy;
+use std::sync::RwLock;
 
 ///global configuration
 ///
@@ -10,7 +10,7 @@ use crate::broker::Execution::AtOpen;
 #[derive(Debug, Clone)]
 pub struct Config {
     pub commission_rate: f64,
-    pub execution_time:Execution,
+    pub execution_time: Execution,
 }
 
 ///default configuration
@@ -35,6 +35,9 @@ pub fn set_config(cfg: Config) {
 /// Note: in case you change it you need to recall it with get_config() if you need to use last update not initial value
 ///
 /// ```no_run
+/// use rs_backtester::config::{get_config, update_config};
+/// use rs_backtester::broker::Execution::AtOpen;
+///
 /// let cfg = get_config();
 /// println!("Initial execution time {:?}",cfg.execution_time);
 /// update_config(|cfg|{cfg.execution_time=AtOpen(3)});
@@ -51,22 +54,27 @@ pub fn get_config() -> Config {
 ///
 /// To modify, call with:
 /// ```
+/// use rs_backtester::config::update_config;
+///
 /// update_config(|cfg| {
 ///     cfg.commission_rate = 0.01;});
 ///```
 /// or
 ///```
+/// use rs_backtester::config::{Config, update_config};
+/// use rs_backtester::broker::Execution::AtOpen;
+///
 /// update_config(|cfg| {
 ///     *cfg = Config {
-///         debug_mode: false,
+///         execution_time: AtOpen(2),
 ///         commission_rate: 0.01,
 ///     };
 /// });
 /// ```
 ///
 pub fn update_config<F>(modifier: F)
-    where
-        F: FnOnce(&mut Config),
+where
+    F: FnOnce(&mut Config),
 {
     let mut config_lock = CONFIG.write().unwrap();
 
