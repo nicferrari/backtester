@@ -7,7 +7,6 @@ on:
 
 jobs:
   test:
-    name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -19,6 +18,23 @@ jobs:
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+
+      # Linux dependencies
+      - name: Install system dependencies (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+
+      # macOS dependencies
+      - name: Install system dependencies (macOS only)
+        if: runner.os == 'macOS'
+        run: brew install fontconfig
+
+      # Windows dependencies
+      - name: Install system dependencies (Windows only)
+        if: runner.os == 'Windows'
+        run: |
+          choco install -y pkgconfiglite
+          choco install -y fontconfig
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@v2
