@@ -1,3 +1,5 @@
+## [0.1.5]
+
 ## [0.1.4]
 - added volumes to Data
 - added max drawdown and sharpe ratio to report

@@ -41,7 +41,7 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
 - Now:
   - you can read a report of the backtest
     ```rust
-    report_horizontal(sma_cross_tester);
+    report_horizontal(&[&sma_cross_tester]);
     ```
   - you can see the list of trades
     ```rust
@@ -72,11 +72,15 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
 - <B>trades</B>: how to obtain list of trades (with stats) in a Backtest or see details of a single trade
 - <B>strategy</B>: how to build a custom strategy
 - <B>log</B>: how to log (to csv) parts or whole Backtest
-- <B>chart</B>: how to save a plot (.png) of the backtest
+- <B>chart</B>: how to save a plot (.png) of the Backtest
 
 ### What's new
 - 0.1.4 introduces several reworks, optimizations and clean-ups
 - More details in the changelog
+
+### Features
+- Cross-platforms (Windows, Linux, MacOs)
+- Clippy and fmt compliant
 
 ## Disclaimer <br>
 This software is provided for educational and research purposes only.<br>

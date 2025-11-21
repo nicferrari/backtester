@@ -10,4 +10,5 @@ pub mod strategies;
 pub mod ta;
 pub mod trades;
 pub mod utilities;
+pub mod chart_test;
 pub use errors::Result;

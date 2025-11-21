@@ -9,7 +9,7 @@ use std::error::Error;
 use std::time::Instant;
 pub struct Backtest {
     pub strategy: Strategy,
-    pub(crate) broker: Broker,
+    pub broker: Broker,
     pub metrics: Metrics,
     pub local_config: Option<Config>,
 }
