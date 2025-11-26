@@ -1,7 +1,11 @@
 use crate::backtester::Backtest;
+use crate::broker::Status::Executed;
 use crate::orders;
-use charming::component::{Axis, DataZoom, DataZoomType, Grid};
-use charming::element::{AreaStyle, AxisLabel, Tooltip, Trigger};
+use crate::orders::Order::{BUY, SHORTSELL};
+use charming::component::{Axis, DataZoom, DataZoomType, Grid, Title};
+use charming::datatype::{CompositeValue, DataPoint};
+use charming::element::{AreaStyle, AxisLabel, ItemStyle, Symbol, TextAlign, Tooltip, Trigger};
+use charming::series::Scatter;
 use charming::series::{Bar, Candlestick, Line};
 use charming::{Chart, HtmlRenderer};
 use chrono::{DateTime, FixedOffset};
@@ -9,6 +13,8 @@ use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
 use plotters::style::full_palette::{GREEN_900, GREY, ORANGE};
 use std::env;
+use charming::element::TextAlign::Center;
+use charming::series::Align::Left;
 
 ///configuration used in charts
 pub struct PlotConfig {
@@ -307,8 +313,55 @@ fn interactive_chart(bt: Backtest) -> Chart {
             ]
         })
         .collect();
+    let combined = bt
+        .broker
+        .status
+        .iter()
+        .zip(bt.strategy.choices.iter())
+        .zip(bt.strategy.data.open.iter())
+        .enumerate();
+    let buys: Vec<(usize, f64)> = combined
+        .clone()
+        .filter_map(|(i, ((exec, ord), price))| {
+            if *exec == Executed && *ord == BUY {
+                Some((i, *price))
+            } else {
+                None
+            }
+        })
+        .collect();
+    let buys_points: Vec<DataPoint> = buys
+        .iter()
+        .map(|(i, price)| {
+            DataPoint::Value(CompositeValue::Array(vec![
+                CompositeValue::Number(charming::datatype::NumericValue::Float(*i as f64)),
+                CompositeValue::Number(charming::datatype::NumericValue::Float(*price)),
+            ]))
+        })
+        .collect();
+    let sells: Vec<(usize, f64)> = combined
+        .clone()
+        .filter_map(|(i, ((exec, ord), price))| {
+            if *exec == Executed && *ord == SHORTSELL {
+                Some((i, *price))
+            } else {
+                None
+            }
+        })
+        .collect();
+    let sells_points: Vec<DataPoint> = sells
+        .iter()
+        .map(|(i, price)| {
+            DataPoint::Value(CompositeValue::Array(vec![
+                CompositeValue::Number(charming::datatype::NumericValue::Float(*i as f64)),
+                CompositeValue::Number(charming::datatype::NumericValue::Float(*price)),
+            ]))
+        })
+        .collect();
 
-    Chart::new()
+    let down_triangle = "path://M0,10 L-8,-6 L8,-6 Z";
+
+    Chart::new().title(Title::new().text(bt.strategy.data.ticker.clone()).left("center"))
         .data_zoom(
             DataZoom::new()
                 .x_axis_index(vec![0, 1, 2])
@@ -333,6 +386,20 @@ fn interactive_chart(bt: Backtest) -> Chart {
                 .axis_label(AxisLabel::new()),
         )
         .series(Candlestick::new().data(candles))
+        .series(
+            Scatter::new()
+                .name("Buys")
+                .data(buys_points)
+                .symbol(Symbol::Triangle)
+                .item_style(ItemStyle::new().color("black")),
+        )
+        .series(
+            Scatter::new()
+                .name("Sells")
+                .data(sells_points)
+                .symbol(Symbol::Custom(down_triangle.to_string()))
+                .item_style(ItemStyle::new().color("black")),
+        )
         .grid(Grid::new().top("65%").height("10%"))
         .x_axis(
             Axis::new().grid_index(1).data(
