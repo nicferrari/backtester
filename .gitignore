@@ -3,3 +3,4 @@
 /examples/cpp_compare.rs
 /*.csv
 /examples/vectorbt_compare.rs
+/*.html

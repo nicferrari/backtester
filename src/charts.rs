@@ -1,10 +1,15 @@
 use crate::backtester::Backtest;
 use crate::orders;
+use charming::component::{Axis, DataZoom, DataZoomType, Grid};
+use charming::element::{AreaStyle, AxisLabel, Tooltip, Trigger};
+use charming::series::{Bar, Candlestick, Line};
+use charming::{Chart, HtmlRenderer};
 use chrono::{DateTime, FixedOffset};
 use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
 use plotters::style::full_palette::{GREEN_900, GREY, ORANGE};
 use std::env;
+
 ///configuration used in charts
 pub struct PlotConfig {
     pub display_indic: bool,
@@ -273,6 +278,105 @@ pub fn plot(
             .draw()
             .unwrap();
     }
-    println!("Chart saved as = {:?}", path);
+    println!("Chart saved as = {}", path);
+    Ok(())
+}
+
+fn interactive_chart(bt: Backtest) -> Chart {
+    let min_value = *bt
+        .strategy
+        .data
+        .low
+        .iter()
+        .min_by(|x, y| x.partial_cmp(y).unwrap())
+        .unwrap();
+    let max_value = *bt
+        .strategy
+        .data
+        .low
+        .iter()
+        .max_by(|x, y| x.partial_cmp(y).unwrap())
+        .unwrap();
+    let candles = (0..bt.strategy.data.open.len())
+        .map(|i| {
+            vec![
+                bt.strategy.data.open[i],
+                bt.strategy.data.close[i],
+                bt.strategy.data.low[i],
+                bt.strategy.data.high[i],
+            ]
+        })
+        .collect();
+
+    Chart::new()
+        .data_zoom(
+            DataZoom::new()
+                .x_axis_index(vec![0, 1, 2])
+                .type_(DataZoomType::Slider),
+        )
+        .grid(Grid::new().top("10%").height("50%"))
+        .x_axis(
+            Axis::new().grid_index(0).data(
+                bt.strategy
+                    .data
+                    .datetime
+                    .iter()
+                    .map(|a| a.date_naive().to_string())
+                    .collect(),
+            ),
+        )
+        .y_axis(
+            Axis::new()
+                .grid_index(0)
+                .min((min_value * 0.95) as i64)
+                .max((max_value * 1.05) as i64)
+                .axis_label(AxisLabel::new()),
+        )
+        .series(Candlestick::new().data(candles))
+        .grid(Grid::new().top("65%").height("10%"))
+        .x_axis(
+            Axis::new().grid_index(1).data(
+                bt.strategy
+                    .data
+                    .datetime
+                    .iter()
+                    .map(|a| a.date_naive().to_string())
+                    .collect(),
+            ),
+        )
+        .y_axis(Axis::new().grid_index(1))
+        .series(
+            Bar::new()
+                .x_axis_index(1)
+                .y_axis_index(1)
+                .data(bt.strategy.data.volume.iter().map(|v| v.as_f64()).collect()),
+        )
+        .grid(Grid::new().top("80%").height("10%"))
+        .x_axis(
+            Axis::new().grid_index(2).data(
+                bt.strategy
+                    .data
+                    .datetime
+                    .iter()
+                    .map(|a| a.to_string())
+                    .collect(),
+            ),
+        )
+        .y_axis(Axis::new().grid_index(2))
+        .series(
+            Line::new()
+                .x_axis_index(2)
+                .y_axis_index(2)
+                .data(bt.broker.networth)
+                .area_style(AreaStyle::new()),
+        )
+        .tooltip(Tooltip::new().trigger(Trigger::Axis))
+}
+pub fn i_chart(bt: Backtest, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let chart = interactive_chart(bt);
+    let mut renderer = HtmlRenderer::new("i_chart", 1000, 800);
+    let path = env::current_dir()?.into_os_string().into_string().unwrap() + "\\" + filename;
+    println!("Interactive charts saves as = {}", path);
+    renderer.save(&chart, filename).unwrap();
     Ok(())
 }

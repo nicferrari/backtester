@@ -1,5 +1,5 @@
 use rs_backtester::backtester::Backtest;
-use rs_backtester::charts::{plot, PlotConfig};
+use rs_backtester::charts::{i_chart, plot, PlotConfig};
 use rs_backtester::data::Data;
 use rs_backtester::strategies::sma_cross;
 use std::error::Error;
@@ -15,6 +15,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     plot_config.display_marker_label = true;
     plot_config.display_networth = true;
 
+    //png plot
     plot(&backtest, plot_config, "plot.png")?;
+    //interactive html chart
+    i_chart(backtest, "i_chart.html")?;
+
     Ok(())
 }

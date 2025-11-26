@@ -47,9 +47,10 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
     ```rust
     sma_cross_tester.print_all_trades();
     ```
-  - you can chart it (with indicators)
+  - you can chart it (with indicators) - static png or interactive html
     ```rust
-    plot(sma_cross_tester,plot_config)?;
+    plot(sma_cross_tester,plot_config,"plot.png")?;
+    i_plot(sma_cross_tester,"i_plot.html")?;
     ``` 
   <img src="https://raw.githubusercontent.com/nicferrari/rs-backtester/master/plot.png" width="400"/><BR>
   - you can save it to CSV for inspection
@@ -72,7 +73,7 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
 - <B>trades</B>: how to obtain list of trades (with stats) in a Backtest or see details of a single trade
 - <B>strategy</B>: how to build a custom strategy
 - <B>log</B>: how to log (to csv) parts or whole Backtest
-- <B>chart</B>: how to save a plot (.png) of the Backtest
+- <B>chart</B>: how to save a plot (.png) or an interactive chart (.html) of the Backtest
 
 ### What's new
 - 0.1.4 introduces several reworks, optimizations and clean-ups

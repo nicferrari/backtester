@@ -1,4 +1,5 @@
 ## [0.1.5]
+- added interactive charts
 
 ## [0.1.4]
 - added volumes to Data
