@@ -1,5 +1,6 @@
 ## [0.1.5]
 - added interactive charts
+- added Sizers (AllIns, Fixed)
 
 ## [0.1.4]
 - added volumes to Data

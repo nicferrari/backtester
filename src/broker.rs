@@ -2,6 +2,7 @@ use crate::broker::Execution::AtOpen;
 use crate::config::get_config;
 use crate::data::Data;
 use crate::metrics::Metrics;
+use crate::risk_manager::{AllInSizerWholeUnits, FixedSizer, Sizer};
 use crate::strategies::Strategy;
 use crate::trades::trade_indices_from_broker;
 use std::fmt;
@@ -70,7 +71,7 @@ impl Broker {
             (self.available.last().unwrap() / self.available.first().unwrap()).ln() * 100.
         ); //todo: now calculated on open not close
         let exposure_time =
-            self.position.iter().filter(|&&i| i != 0).count() as f64 / self.position.len() as f64;
+            self.position.iter().filter(|&&i| i != 0.).count() as f64 / self.position.len() as f64;
         println!("Exposure time = {:.2}%", exposure_time * 100.);
 
         //sharpe ratio
@@ -106,7 +107,7 @@ impl Broker {
         metrics.bt_return =
             Some((self.networth.last().unwrap() / self.networth.first().unwrap()).ln() * 100.);
         let exposure_time =
-            self.position.iter().filter(|&&i| i != 0).count() as f64 / self.position.len() as f64; //todo!calculate on indices not on days
+            self.position.iter().filter(|&&i| i != 0.).count() as f64 / self.position.len() as f64; //todo!calculate on indices not on days
         metrics.exposure_time = Some(exposure_time);
         let mut peak = self.networth.first().unwrap();
         let max_drawdown = self
@@ -191,7 +192,7 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     }
     //calculate accounts and positions
     let mut accounts = vec![initial_account; status.len()];
-    let mut positions = vec![0; status.len()];
+    let mut positions = vec![0.; status.len()];
     let mut availables = vec![initial_account; status.len()];
     let mut fees = vec![0.; status.len()];
     let mut invested = vec![0.; status.len()];
@@ -199,6 +200,8 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     let mut cash = vec![0.; status.len()];
     let mut networth = vec![0.; status.len()];
     let cfg = get_config();
+    //let sizer = FixedSizer { fixed_size: 10000. };
+    let sizer = AllInSizerWholeUnits;
     for i in 0..status.len() {
         availables[i..].fill(
             positions[i] as f64 * cfg.execution_time.to_quotes(strategy.data.clone(), i)
@@ -209,9 +212,16 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
                 * cfg.execution_time.to_quotes(strategy.data.clone(), i)
                 * cfg.commission_rate;
             positions[i..].fill(
+                /*
                 ((strategy.choices[i].sign() as f64) * (availables[i] - fees[i])
                     / cfg.execution_time.to_quotes(strategy.data.clone(), i)
-                    / (1. + cfg.commission_rate)) as i32,
+                    / (1. + cfg.commission_rate)).trunc(),*/
+                strategy.choices[i].sign() as f64
+                    * sizer.position(
+                        availables[i] - fees[i],
+                        cfg.execution_time.to_quotes(strategy.data.clone(), i),
+                        cfg.commission_rate,
+                    ),
             );
             invested[i..]
                 .fill(positions[i] as f64 * cfg.execution_time.to_quotes(strategy.data.clone(), i));
