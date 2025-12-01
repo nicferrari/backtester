@@ -1,24 +1,26 @@
-use crate::broker::Execution::AtOpen;
+//use crate::broker::Execution::{AtOpen,AtClose};
 use crate::config::get_config;
 use crate::data::Data;
 use crate::metrics::Metrics;
-use crate::risk_manager::{AllInSizerWholeUnits, FixedSizer, Sizer};
 use crate::strategies::Strategy;
 use crate::trades::trade_indices_from_broker;
 use std::fmt;
 use std::fmt::Formatter;
 use std::sync::Arc;
 
+
 #[derive(Clone, Debug)]
 pub enum Execution {
     AtOpen(u32),
+    AtClose(u32),
     No,
 }
 
 impl Execution {
     pub fn to_quotes(&self, data: Arc<Data>, index: usize) -> f64 {
         match self {
-            AtOpen(_) => data.open[index],
+            Execution::AtOpen(_) => data.open[index],
+            Execution::AtClose(_) => data.close[index],
             _ => 0.,
         }
     }
@@ -34,7 +36,8 @@ pub enum Status {
 impl fmt::Display for Execution {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            AtOpen(u32) => write!(f, "At Open ({})", u32),
+            Execution::AtOpen(u32) => write!(f, "At Open ({})", u32),
+            Execution::AtClose(u32) => write!(f, "At Close ({})", u32),
             Execution::No => write!(f, ""),
         }
     }
@@ -159,18 +162,31 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
         )
         .collect();
     let mut carry: Option<u32> = None;
+    let mut last_variant: Option<Execution> = None;
     let mut orders_delayed = Vec::with_capacity(orders.len());
     for val in orders {
         match val {
-            AtOpen(n) => {
+            Execution::AtOpen(n) => {
                 carry = Some(n);
-                orders_delayed.push(AtOpen(n));
+                last_variant = Some(Execution::AtOpen(n));
+                orders_delayed.push(Execution::AtOpen(n));
             }
-            _ => {
+            Execution::AtClose(n) => {
+                carry = Some(n);
+                last_variant = Some(Execution::AtClose(n));
+                orders_delayed.push(Execution::AtClose(n));
+            }
+            Execution::No => {
                 if let Some(x) = carry {
                     if x >= 1 {
                         carry = Some(x - 1);
-                        orders_delayed.push(AtOpen(x - 1));
+                        match last_variant {
+                            Some(Execution::AtOpen(_))=>orders_delayed.push(Execution::AtOpen(x-1)),
+                            Some(Execution::AtClose(_))=>orders_delayed.push(Execution::AtClose(x-1)),
+                            Some(Execution::No)=>orders_delayed.push(Execution::No),
+                            None =>orders_delayed.push(Execution::No),
+                        }
+                        //orders_delayed.push(Execution::AtOpen(x - 1));
                     } else {
                         carry = None;
                         orders_delayed.push(Execution::No);
@@ -185,9 +201,11 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     let mut status = Vec::new();
     for val in &orders_delayed {
         match val {
-            AtOpen(0) => status.push(Status::Executed),
-            AtOpen(_) => status.push(Status::Sent),
-            _ => status.push(Status::No),
+            Execution::AtOpen(0) => status.push(Status::Executed),
+            Execution::AtOpen(_) => status.push(Status::Sent),
+            Execution::AtClose(0) => status.push(Status::Executed),
+            Execution::AtClose(_) => status.push(Status::Sent),
+            Execution::No => status.push(Status::No),
         }
     }
     //calculate accounts and positions
@@ -200,8 +218,8 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     let mut cash = vec![0.; status.len()];
     let mut networth = vec![0.; status.len()];
     let cfg = get_config();
-    //let sizer = FixedSizer { fixed_size: 10000. };
-    let sizer = AllInSizerWholeUnits;
+    //let risk_manager = RiskManager::default();
+    let sizer = cfg.sizer;
     for i in 0..status.len() {
         availables[i..].fill(
             positions[i] as f64 * cfg.execution_time.to_quotes(strategy.data.clone(), i)
@@ -220,7 +238,6 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
                     * sizer.position(
                         availables[i] - fees[i],
                         cfg.execution_time.to_quotes(strategy.data.clone(), i),
-                        cfg.commission_rate,
                     ),
             );
             invested[i..]

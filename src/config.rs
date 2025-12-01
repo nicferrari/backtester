@@ -1,5 +1,6 @@
 use crate::broker::Execution;
 use crate::broker::Execution::AtOpen;
+use crate::risk_manager::{AllInSizerWholeUnits, Sizer};
 use once_cell::sync::Lazy;
 use std::sync::RwLock;
 
@@ -7,10 +8,12 @@ use std::sync::RwLock;
 ///
 /// - commission_rate = fees as a percentage. applied on both long and short trades
 /// - execution_time = currently allows only AtOpen(n) -> execution of orders will be performed at next n-th open
+/// - sizer = one of the Sizer
 #[derive(Debug, Clone)]
 pub struct Config {
     pub commission_rate: f64,
     pub execution_time: Execution,
+    pub sizer: Box<dyn Sizer>,
 }
 
 ///default configuration
@@ -19,6 +22,7 @@ impl Default for Config {
         Config {
             commission_rate: 0.,
             execution_time: AtOpen(1),
+            sizer: Box::new(AllInSizerWholeUnits),
         }
     }
 }
@@ -63,11 +67,13 @@ pub fn get_config() -> Config {
 ///```
 /// use rs_backtester::config::{Config, update_config};
 /// use rs_backtester::broker::Execution::AtOpen;
+/// use rs_backtester::risk_manager::AllInSizerWholeUnits;
 ///
 /// update_config(|cfg| {
 ///     *cfg = Config {
 ///         execution_time: AtOpen(2),
 ///         commission_rate: 0.01,
+///         sizer:Box::new(AllInSizerWholeUnits),
 ///     };
 /// });
 /// ```

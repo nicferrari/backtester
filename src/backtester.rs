@@ -61,9 +61,13 @@ impl Backtest {
             " commission rate {:.2}%,",
             self.local_config.clone().unwrap().commission_rate * 100.
         );
-        println!(
-            " execution time = {:?}\x1b[0m",
+        print!(
+            " execution time = {:?},",
             self.local_config.clone().unwrap().execution_time
+        );
+        println!(
+            " sizer = {:?}\x1b[0m",
+            self.local_config.clone().unwrap().sizer
         );
     }
     ///outputs the list of all trades in a Backtest

@@ -1,4 +1,5 @@
 use rs_backtester::backtester::Backtest;
+use rs_backtester::broker::Execution::{AtClose, AtOpen};
 use rs_backtester::config::{get_config, update_config};
 use rs_backtester::data::Data;
 use rs_backtester::metrics::{report_horizontal, report_vertical};

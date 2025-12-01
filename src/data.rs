@@ -109,7 +109,7 @@ impl Data {
     pub fn load(path: &str, ticker: &str) -> Result<Arc<Self>, Box<dyn Error>> {
         let path2 = env::current_dir();
         let mut rdr = csv::Reader::from_path(path)
-            .unwrap_or_else(|_| panic!("couldn't read file in {:?}", path2));
+            .unwrap_or_else(|_| panic!("couldn't find file {:?} in {:?}", path, path2));
         let mut datetime = Vec::new();
         let mut open = Vec::new();
         let mut high = Vec::new();
