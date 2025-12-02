@@ -41,16 +41,16 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
 - Now:
   - you can read a report of the backtest
     ```rust
-    report_horizontal(&[&sma_cross_tester]);
+    report_horizontal(&[&sma_cross_bt]);
     ```
   - you can see the list of trades
     ```rust
-    sma_cross_tester.print_all_trades();
+    sma_cross_bt.print_all_trades();
     ```
   - you can chart it (with indicators) - static png or interactive html
     ```rust
-    plot(sma_cross_tester,plot_config,"plot.png")?;
-    i_plot(sma_cross_tester,"i_plot.html")?;
+    plot(sma_cross_bt,plot_config,"plot.png")?;
+    i_plot(sma_cross_bt,"i_plot.html")?;
     ``` 
   <img src="https://raw.githubusercontent.com/nicferrari/rs-backtester/master/plot.png" width="400"/><BR>
   - you can save it to CSV for inspection

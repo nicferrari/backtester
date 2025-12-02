@@ -8,11 +8,13 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::sync::Arc;
 
-
 #[derive(Clone, Debug)]
 pub enum Execution {
     AtOpen(u32),
     AtClose(u32),
+    AtHigh(u32),
+    AtLow(u32),
+    AtMid(u32),
     No,
 }
 
@@ -21,7 +23,10 @@ impl Execution {
         match self {
             Execution::AtOpen(_) => data.open[index],
             Execution::AtClose(_) => data.close[index],
-            _ => 0.,
+            Execution::AtHigh(_) => data.high[index],
+            Execution::AtLow(_) => data.low[index],
+            Execution::AtMid(_) => (data.low[index] + data.high[index]) / 2.,
+            Execution::No => 0.,
         }
     }
 }
@@ -38,6 +43,9 @@ impl fmt::Display for Execution {
         match self {
             Execution::AtOpen(u32) => write!(f, "At Open ({})", u32),
             Execution::AtClose(u32) => write!(f, "At Close ({})", u32),
+            Execution::AtHigh(u32) => write!(f, "At High ({})", u32),
+            Execution::AtLow(u32) => write!(f, "At Low ({})", u32),
+            Execution::AtMid(u32) => write!(f, "At Mid ({})", u32),
             Execution::No => write!(f, ""),
         }
     }
@@ -57,7 +65,6 @@ pub struct Broker {
     pub execution: Vec<Execution>,
     pub status: Vec<Status>,
     pub available: Vec<f64>,
-    //pub position: Vec<i32>,
     pub position: Vec<f64>,
     pub invested: Vec<f64>,
     pub fees: Vec<f64>,
@@ -176,17 +183,44 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
                 last_variant = Some(Execution::AtClose(n));
                 orders_delayed.push(Execution::AtClose(n));
             }
+            Execution::AtHigh(n) => {
+                carry = Some(n);
+                last_variant = Some(Execution::AtHigh(n));
+                orders_delayed.push(Execution::AtHigh(n));
+            }
+            Execution::AtLow(n) => {
+                carry = Some(n);
+                last_variant = Some(Execution::AtLow(n));
+                orders_delayed.push(Execution::AtLow(n));
+            }
+            Execution::AtMid(n) => {
+                carry = Some(n);
+                last_variant = Some(Execution::AtMid(n));
+                orders_delayed.push(Execution::AtMid(n));
+            }
             Execution::No => {
                 if let Some(x) = carry {
                     if x >= 1 {
                         carry = Some(x - 1);
                         match last_variant {
-                            Some(Execution::AtOpen(_))=>orders_delayed.push(Execution::AtOpen(x-1)),
-                            Some(Execution::AtClose(_))=>orders_delayed.push(Execution::AtClose(x-1)),
-                            Some(Execution::No)=>orders_delayed.push(Execution::No),
-                            None =>orders_delayed.push(Execution::No),
+                            Some(Execution::AtOpen(_)) => {
+                                orders_delayed.push(Execution::AtOpen(x - 1))
+                            }
+                            Some(Execution::AtClose(_)) => {
+                                orders_delayed.push(Execution::AtClose(x - 1))
+                            }
+                            Some(Execution::AtHigh(_)) => {
+                                orders_delayed.push(Execution::AtHigh(x - 1))
+                            }
+                            Some(Execution::AtLow(_)) => {
+                                orders_delayed.push(Execution::AtLow(x - 1))
+                            }
+                            Some(Execution::AtMid(_)) => {
+                                orders_delayed.push(Execution::AtMid(x - 1))
+                            }
+                            Some(Execution::No) => orders_delayed.push(Execution::No),
+                            None => orders_delayed.push(Execution::No),
                         }
-                        //orders_delayed.push(Execution::AtOpen(x - 1));
                     } else {
                         carry = None;
                         orders_delayed.push(Execution::No);
@@ -201,10 +235,17 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     let mut status = Vec::new();
     for val in &orders_delayed {
         match val {
-            Execution::AtOpen(0) => status.push(Status::Executed),
-            Execution::AtOpen(_) => status.push(Status::Sent),
-            Execution::AtClose(0) => status.push(Status::Executed),
-            Execution::AtClose(_) => status.push(Status::Sent),
+            Execution::AtOpen(n)
+            | Execution::AtClose(n)
+            | Execution::AtHigh(n)
+            | Execution::AtLow(n)
+            | Execution::AtMid(n) => {
+                if *n == 0 {
+                    status.push(Status::Executed);
+                } else {
+                    status.push(Status::Sent);
+                }
+            }
             Execution::No => status.push(Status::No),
         }
     }
@@ -218,7 +259,6 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     let mut cash = vec![0.; status.len()];
     let mut networth = vec![0.; status.len()];
     let cfg = get_config();
-    //let risk_manager = RiskManager::default();
     let sizer = cfg.sizer;
     for i in 0..status.len() {
         availables[i..].fill(
@@ -230,10 +270,6 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
                 * cfg.execution_time.to_quotes(strategy.data.clone(), i)
                 * cfg.commission_rate;
             positions[i..].fill(
-                /*
-                ((strategy.choices[i].sign() as f64) * (availables[i] - fees[i])
-                    / cfg.execution_time.to_quotes(strategy.data.clone(), i)
-                    / (1. + cfg.commission_rate)).trunc(),*/
                 strategy.choices[i].sign() as f64
                     * sizer.position(
                         availables[i] - fees[i],
