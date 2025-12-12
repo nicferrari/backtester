@@ -7,11 +7,11 @@ pub enum Order {
     NULL,
 }
 impl Order {
-    pub fn to_string(&self) -> &str {
+    pub fn to_string(&self) -> String {
         match self {
-            Order::BUY => "buy",
-            Order::NULL => "null",
-            Order::SHORTSELL => "short",
+            Order::BUY => "buy".to_string(),
+            Order::NULL => "".to_string(),
+            Order::SHORTSELL => "short".to_string(),
         }
     }
     pub fn sign(&self) -> i8 {

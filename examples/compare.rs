@@ -3,6 +3,8 @@ use rs_backtester::data::Data;
 use rs_backtester::metrics::report_vertical;
 use rs_backtester::strategies::{buy_n_hold, rsi_strategy, sma_cross, sma_strategy};
 use std::error::Error;
+use rs_backtester::broker::Execution::AtOpen;
+use rs_backtester::config::{get_config, update_config};
 
 pub fn main() -> Result<(), Box<dyn Error>> {
     let filename = "test_data//NVDA.csv";
@@ -13,7 +15,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let rsi = rsi_strategy(quotes_arc.clone(), 15);
     let buynhold_bt = Backtest::new(buynhold, 100_000.);
     let sma_cross_bt = Backtest::new(sma_cross, 100_000.);
+    let cfg = get_config();
+    //update_config(|cfg|{cfg.execution_time=AtOpen(3)});
     let sma_bt = Backtest::new(sma, 100_000.);
+    sma_bt.to_csv("sma_cpp2.csv");
     let rsi_bt = Backtest::new(rsi, 100_000.);
     report_vertical(&[&buynhold_bt, &sma_bt, &sma_cross_bt, &rsi_bt]);
     Ok(())

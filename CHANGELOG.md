@@ -2,6 +2,7 @@
 - added interactive charts
 - added Sizers (AllIns, Fixed)
 - added different execution times (at close, high, low, mid)
+- now all orders are executed. removed cancellation in case of reverse in a future bar with an order pending
 
 ## [0.1.4]
 - added volumes to Data

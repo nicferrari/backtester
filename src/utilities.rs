@@ -58,6 +58,7 @@ impl SerializeAsCsv for Broker {
     fn headers(&self) -> Vec<String> {
         vec![
             "Execution".to_string(),
+            "Side".to_string(),
             "Status".to_string(),
             "Available".to_string(),
             "Positions".to_string(),
@@ -74,6 +75,7 @@ impl SerializeAsCsv for Broker {
         for i in 0..self.execution.len() {
             rows.push(vec![
                 self.execution[i].to_string(),
+                self.side[i].to_string(),
                 self.status[i].to_string(),
                 self.available[i].to_string(),
                 self.position[i].to_string(),
@@ -111,7 +113,7 @@ impl SerializeAsCsv for Strategy {
             for i in 0..self.choices.len() {
                 let mut row = vec![
                     self.name.clone(),
-                    self.choices[i].to_string().parse().unwrap(),
+                    self.choices[i].to_string(),
                 ];
                 row.extend(indicators.iter().map(|ind| ind[i].to_string()));
                 rows.push(row);

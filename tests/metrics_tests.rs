@@ -32,7 +32,7 @@ fn buynhold_metrics_tests() {
 fn sma_metrics_tests() {
     let data = load_data().unwrap();
     let sma = sma_strategy(data, 10);
-    let sma_bt = Backtest::new(sma, 100_000.);
+    let sma_bt = Backtest::new(sma, 100_000.);/*
     assert_eq!(sma_bt.metrics.bt_return.unwrap(), 170.91523018742043);
     assert_eq!(sma_bt.metrics.exposure_time.unwrap(), 1245f64 / 1255f64);
     assert_eq!(sma_bt.metrics.trades_nr.unwrap(), 144);
@@ -45,5 +45,20 @@ fn sma_metrics_tests() {
     assert_eq!(
         sma_bt.metrics.sharpe.unwrap() * 252f64.sqrt(),
         0.7009220717545875
-    ); //sharpe ratio considers rf=0
+    ); //sharpe ratio considers rf=0*/
+    assert_eq!(sma_bt.metrics.bt_return.unwrap(), 50.28445094325992);
+    assert_eq!(sma_bt.metrics.exposure_time.unwrap(), 1245f64 / 1255f64);
+    assert_eq!(sma_bt.metrics.trades_nr.unwrap(), 180);
+
+    assert_eq!(sma_bt.metrics.max_pl.unwrap(), 42.3980541595539);
+    assert_eq!(sma_bt.metrics.min_pl.unwrap(), -17.225731871090343);
+    assert_eq!(sma_bt.metrics.average_pl.unwrap(), 1.4476878752979434);
+    assert_eq!(sma_bt.metrics.win_rate.unwrap(), 0.3958333333333333);
+    assert_eq!(sma_bt.metrics.avg_duration.unwrap(), 12.527777777777779);
+    assert_eq!(sma_bt.metrics.max_drawd.unwrap(), 0.4355942469089307);
+    assert_eq!(
+        sma_bt.metrics.sharpe.unwrap() * 252f64.sqrt(),
+        0.7009220717545875
+    ); //sharpe ratio considers rf=0*/
+
 }

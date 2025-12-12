@@ -1,4 +1,3 @@
-//use crate::broker::Execution::{AtOpen,AtClose};
 use crate::config::get_config;
 use crate::data::Data;
 use crate::metrics::Metrics;
@@ -7,8 +6,9 @@ use crate::trades::trade_indices_from_broker;
 use std::fmt;
 use std::fmt::Formatter;
 use std::sync::Arc;
+use crate::orders::Order;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Execution {
     AtOpen(u32),
     AtClose(u32),
@@ -63,6 +63,7 @@ impl fmt::Display for Status {
 #[derive(Clone)]
 pub struct Broker {
     pub execution: Vec<Execution>,
+    pub side: Vec<Order>,
     pub status: Vec<Status>,
     pub available: Vec<f64>,
     pub position: Vec<f64>,
@@ -168,6 +169,25 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
                 }),
         )
         .collect();
+    //let pending_order = orders.iter().zip(strategy.choices.iter()).map(|(&a,&b)|if a!=Execution::No{b}else{Order::NULL}).collect();
+    //let pending_order = orders.iter().zip(strategy.choices.iter()).scan(Order::NULL,|last_b,(&a,&b)|{if a!=Execution::No{*last_b=b;Some(b)}else{Some(*last_b)}}).collect();
+
+    let cfg = get_config();
+    let offset = match cfg.execution_time{
+        Execution::AtOpen(val)=>val,
+        Execution::AtClose(val)=>val,
+        Execution::AtHigh(val)=>val,
+        Execution::AtLow(val)=>val,
+        Execution::AtMid(val)=>val,
+        _ =>0,
+    };
+
+    let mut pending_order = vec![Order::NULL;orders.len()];
+    let mut status = vec![Status::No;orders.len()];
+    for i in 0..pending_order.len()-offset as usize{
+        if orders[i] == cfg.execution_time{status[i+offset as usize]=Status::Executed;pending_order[i+offset as usize]=strategy.choices[i]}
+    }
+
     let mut carry: Option<u32> = None;
     let mut last_variant: Option<Execution> = None;
     let mut orders_delayed = Vec::with_capacity(orders.len());
@@ -232,6 +252,7 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
         }
     }
     //calculate order status
+    /*
     let mut status = Vec::new();
     for val in &orders_delayed {
         match val {
@@ -248,7 +269,7 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
             }
             Execution::No => status.push(Status::No),
         }
-    }
+    }*/
     //calculate accounts and positions
     let mut accounts = vec![initial_account; status.len()];
     let mut positions = vec![0.; status.len()];
@@ -270,7 +291,8 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
                 * cfg.execution_time.to_quotes(strategy.data.clone(), i)
                 * cfg.commission_rate;
             positions[i..].fill(
-                strategy.choices[i].sign() as f64
+                //strategy.choices[i].sign() as f64
+                pending_order[i].sign() as f64
                     * sizer.position(
                         availables[i] - fees[i],
                         cfg.execution_time.to_quotes(strategy.data.clone(), i),
@@ -288,6 +310,7 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     }
     Broker {
         execution: orders_delayed,
+        side: pending_order,
         status,
         available: availables,
         position: positions,
