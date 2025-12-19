@@ -1,12 +1,12 @@
 use crate::config::get_config;
 use crate::data::Data;
 use crate::metrics::Metrics;
+use crate::orders::Order;
 use crate::strategies::Strategy;
 use crate::trades::trade_indices_from_broker;
 use std::fmt;
 use std::fmt::Formatter;
 use std::sync::Arc;
-use crate::orders::Order;
 
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Execution {
@@ -162,7 +162,7 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
                 .zip(strategy.choices.iter().skip(1))
                 .map(|(prev, curr)| {
                     if curr != prev {
-                        cfg.execution_time.clone()
+                        cfg.execution_time
                     } else {
                         Execution::No
                     }
@@ -173,19 +173,22 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     //let pending_order = orders.iter().zip(strategy.choices.iter()).scan(Order::NULL,|last_b,(&a,&b)|{if a!=Execution::No{*last_b=b;Some(b)}else{Some(*last_b)}}).collect();
 
     let cfg = get_config();
-    let offset = match cfg.execution_time{
-        Execution::AtOpen(val)=>val,
-        Execution::AtClose(val)=>val,
-        Execution::AtHigh(val)=>val,
-        Execution::AtLow(val)=>val,
-        Execution::AtMid(val)=>val,
-        _ =>0,
+    let offset = match cfg.execution_time {
+        Execution::AtOpen(val) => val,
+        Execution::AtClose(val) => val,
+        Execution::AtHigh(val) => val,
+        Execution::AtLow(val) => val,
+        Execution::AtMid(val) => val,
+        _ => 0,
     };
 
-    let mut pending_order = vec![Order::NULL;orders.len()];
-    let mut status = vec![Status::No;orders.len()];
-    for i in 0..pending_order.len()-offset as usize{
-        if orders[i] == cfg.execution_time{status[i+offset as usize]=Status::Executed;pending_order[i+offset as usize]=strategy.choices[i]}
+    let mut pending_order = vec![Order::NULL; orders.len()];
+    let mut status = vec![Status::No; orders.len()];
+    for i in 0..pending_order.len() - offset as usize {
+        if orders[i] == cfg.execution_time {
+            status[i + offset as usize] = Status::Executed;
+            pending_order[i + offset as usize] = strategy.choices[i]
+        }
     }
 
     let mut carry: Option<u32> = None;

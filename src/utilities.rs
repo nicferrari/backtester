@@ -111,10 +111,7 @@ impl SerializeAsCsv for Strategy {
         let mut rows = Vec::new();
         if let Some(indicators) = &self.indicator {
             for i in 0..self.choices.len() {
-                let mut row = vec![
-                    self.name.clone(),
-                    self.choices[i].to_string(),
-                ];
+                let mut row = vec![self.name.clone(), self.choices[i].to_string()];
                 row.extend(indicators.iter().map(|ind| ind[i].to_string()));
                 rows.push(row);
             }
