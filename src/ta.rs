@@ -19,24 +19,52 @@ pub fn sma(quotes: &Data, period: usize) -> Vec<f64> {
     }
     indicator
 }
+///calculate RSI
+///Wilder version
 pub fn rsi(quotes: &Data, period: usize) -> Vec<f64> {
-    let mut indicator: Vec<f64> = vec![-1.; period - 1];
-    let length = quotes.datetime.len();
-    let diff: &Vec<f64> = &quotes
-        .close
-        .iter()
-        .zip(quotes.open.iter())
-        .map(|(a, b)| a - b)
+    let close = &quotes.close;
+    let mut out = vec![f64::NAN; period];
+
+    // 1. Compute close-close diffs
+    let diffs: Vec<f64> = close
+        .windows(2)
+        .map(|w| w[1] - w[0])
         .collect();
-    for i in period..length + 1 {
-        let slice = &diff[i - period..i];
-        let positive: Vec<f64> = slice.iter().cloned().filter(|&x| x > 0.0).collect();
-        let negative: Vec<f64> = slice.iter().cloned().filter(|&x| x < 0.0).collect();
-        let sum_pos: f64 = Iterator::sum(positive.iter());
-        let sum_neg: f64 = Iterator::sum(negative.iter());
-        let rsi = 100. * (sum_pos / (positive.len() as f64))
-            / (sum_pos / (positive.len() as f64) - sum_neg / (negative.len() as f64));
-        indicator.append(&mut vec![rsi; 1])
-    }
-    indicator
+
+    // 2. First average gain/loss (simple average)
+    let (sum_gain, sum_loss) = diffs[..period].iter().fold((0.0, 0.0), |(g, l), &d| {
+        if d > 0.0 { (g + d, l) } else { (g, l - d) }
+    });
+
+    let mut avg_gain = sum_gain / period as f64;
+    let mut avg_loss = sum_loss / period as f64;
+
+    // 3. First RSI
+    let first_rsi = if avg_loss == 0.0 {
+        100.0
+    } else {
+        let rs = avg_gain / avg_loss;
+        100.0 - 100.0 / (1.0 + rs)
+    };
+    out.push(first_rsi);
+
+    // 4. Wilder smoothing for the rest
+    diffs[period..].iter().for_each(|&d| {
+        let gain = d.max(0.0);
+        let loss = (-d).max(0.0);
+
+        avg_gain = (avg_gain * (period as f64 - 1.0) + gain) / period as f64;
+        avg_loss = (avg_loss * (period as f64 - 1.0) + loss) / period as f64;
+
+        let rsi = if avg_loss == 0.0 {
+            100.0
+        } else {
+            let rs = avg_gain / avg_loss;
+            100.0 - 100.0 / (1.0 + rs)
+        };
+
+        out.push(rsi);
+    });
+
+    out
 }
