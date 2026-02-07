@@ -4,6 +4,8 @@ use crate::data::Data;
 use crate::metrics::Metrics;
 use crate::strategies::Strategy;
 use std::sync::Arc;
+use crate::orders::Order::NULL;
+
 ///Trade: a single trade with indices of moment of open, close and position (= index of trade within the Backtest list of trades)
 #[derive(Clone)]
 pub struct Trade {
@@ -35,6 +37,10 @@ pub fn trade_indices_from_broker(broker: &Broker) -> TradeList {
     if let Some(&last_match) = indices.last() {
         pairs.push((last_match, broker.status.len() - 1))
     };
+
+    // keep only pairs where broker.side at open_index is not NULL
+    let pairs: Vec<(usize, usize)> = pairs .into_iter() .filter(|(open, _)| broker.side[*open] != NULL) .collect();
+
     let indices = pairs
         .into_iter()
         .enumerate()
