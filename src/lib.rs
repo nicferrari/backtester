@@ -11,5 +11,6 @@ pub mod strategies;
 pub mod ta;
 pub mod trades;
 pub mod utilities;
+pub mod bt_run;
 
 pub use errors::Result;

@@ -1,0 +1,24 @@
+[[backtests]]
+symbol = "AAPL"
+interval = "1d"
+range = "6mo"
+initial_capital = 10000
+commission = 0.001
+
+[backtests.strategy]
+type = "MovingAverage"
+period = 10
+
+
+[[backtests]]
+symbol = "NVDA"
+interval = "1d"
+range = "6mo"
+initial_capital = 5000
+commission = 0.0005
+
+[backtests.strategy]
+type = "Rsi"
+period = 14
+overbought = 70
+oversold = 30

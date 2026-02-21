@@ -16,6 +16,5 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let sma_bt = Backtest::new(sma, 100_000.);
     let rsi_bt = Backtest::new(rsi, 100_000.);
     report_vertical(&[&buynhold_bt, &sma_bt, &sma_cross_bt, &rsi_bt]);
-    rsi_bt.print_all_trades();
     Ok(())
 }
