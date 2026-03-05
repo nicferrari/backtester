@@ -6,7 +6,7 @@ initial_capital = 10000
 commission = 0.001
 
 [backtests.strategy]
-type = "MovingAverage"
+type = "Sma"
 period = 10
 
 
@@ -20,5 +20,3 @@ commission = 0.0005
 [backtests.strategy]
 type = "Rsi"
 period = 14
-overbought = 70
-oversold = 30

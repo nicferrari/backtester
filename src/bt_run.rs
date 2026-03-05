@@ -18,13 +18,11 @@ pub struct BacktestConfig {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
 enum StrategyConfig {
-    MovingAverage {
-        period: u32,
+    Sma {
+        period: usize,
     },
     Rsi {
-        period: u32,
-        overbought: f64,
-        oversold: f64,
+        period: usize,
     },
 }
 
@@ -45,9 +43,21 @@ pub fn run(btrun: Config)->Result<(),Box<dyn std::error::Error>>{
     for bt in &btrun.backtests{
         println!("Running {:}",bt.symbol);
         let quotes = Data::new_from_yahoo(&bt.symbol, &bt.interval, &bt.range)?;
-        let sma = sma_strategy(quotes.clone(), 10);
-        let sma_bt = Backtest::new(sma.clone(), bt.initial_capital);
-        results.push(sma_bt);
+        match &bt.strategy {
+            StrategyConfig::Sma { period }=>{
+                let sma = sma_strategy(quotes.clone(), *period);
+                let sma_bt = Backtest::new(sma.clone(), bt.initial_capital);
+                results.push(sma_bt);
+            }
+            StrategyConfig::Rsi {period}=>{
+                let rsi = rsi_strategy(quotes.clone(), *period);
+                let rsi_bt = Backtest::new(rsi.clone(), bt.initial_capital);
+                results.push(rsi_bt);
+            }
+            _ =>{
+                println!("\x1b[31m{:?} not yet implemented\x1b[0m",&bt.strategy);
+            }
+        }
     }
     let refs : Vec<&Backtest> = results.iter().collect();
     report_vertical(&refs);

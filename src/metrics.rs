@@ -7,6 +7,7 @@ const TAB: usize = 15;
 pub struct Metrics {
     pub ticker: Option<String>,
     pub strategy_name: Option<String>,
+    pub bmk_return: Option<f64>,
     //broker metrics
     pub bt_return: Option<f64>,
     pub exposure_time: Option<f64>,
@@ -60,6 +61,7 @@ impl Metrics {
             ticker => ("Ticker", |v:&String| {let end = v.len().min(TAB);v[..end].to_string()}),
             strategy_name => ("Strategy", |v:&String| {let end = v.len().min(15);v[..end].to_string()}),
             bt_return => ("Return", |v| format!("{:.2}%", v)),
+            bmk_return => ("Bmk Return", |v| format!("{:.2}%", v)),
             exposure_time => ("Exp time", |v| format!("{:.2}%", v*100.)),
             trades_nr => ("Trades #", |v| format!("{}", v)),
             max_pl => ("Max p&l", |v| format!("{:.2}%", v)),
@@ -150,6 +152,13 @@ pub fn report_vertical(backtests: &[&Backtest]) {
         "Return",
         backtests,
         |i: &Backtest| i.metrics.bt_return,
+        |r| format!("{:.2}%", r),
+        TAB
+    );
+    print_field!(
+        "Bmk Return",
+        backtests,
+        |i: &Backtest| i.metrics.bmk_return,
         |r| format!("{:.2}%", r),
         TAB
     );

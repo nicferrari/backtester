@@ -127,6 +127,7 @@ impl TradeList {
         let cfg = get_config();
         metrics.ticker = Some(strategy.data.ticker.to_string());
         metrics.strategy_name = Some(strategy.clone().name);
+        metrics.bmk_return = Some((strategy.data.close.last().unwrap()/strategy.data.open.first().unwrap()).ln()*100.);
         metrics.trades_nr = Some(self.indices.len());
         let max_pl = self
             .indices

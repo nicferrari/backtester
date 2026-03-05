@@ -66,7 +66,7 @@ impl Data {
         let closes: Vec<f64> = quotes.iter().map(|s| s.close).collect();
         let volumes: Vec<u64> = quotes.iter().map(|s| s.volume).collect();
         println!(
-            "\x1b[34m{} {} data ({}) downloaded from Yahoo!",
+            "\x1b[34m{} {} data ({}) downloaded from Yahoo!\x1b[0m",
             ticker, range, interval
         );
         Ok(Arc::new(Data {
