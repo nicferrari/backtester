@@ -74,6 +74,7 @@ let sma_cross_bt = Backtest::new(sma_cross_strategy,100_000f64);
 - <B>strategy</B>: how to build a custom strategy
 - <B>log</B>: how to log (to csv) parts or whole Backtest
 - <B>chart</B>: how to save a plot (.png) or an interactive chart (.html) of the Backtest
+- <B>run</B>: how to run multiple backtests via a configuration (toml) file
 
 ### What's new
 - 0.1.4 introduces several reworks, optimizations and clean-ups

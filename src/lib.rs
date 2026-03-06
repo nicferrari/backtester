@@ -1,5 +1,6 @@
 pub mod backtester;
 pub mod broker;
+pub mod bt_run;
 pub mod charts;
 pub mod config;
 pub mod data;
@@ -11,6 +12,5 @@ pub mod strategies;
 pub mod ta;
 pub mod trades;
 pub mod utilities;
-pub mod bt_run;
 
 pub use errors::Result;

@@ -26,15 +26,20 @@ pub fn rsi(quotes: &Data, period: usize) -> Vec<f64> {
     let mut out = vec![f64::NAN; period];
 
     // 1. Compute close-close diffs
-    let diffs: Vec<f64> = close
-        .windows(2)
-        .map(|w| w[1] - w[0])
-        .collect();
+    let diffs: Vec<f64> = close.windows(2).map(|w| w[1] - w[0]).collect();
 
     // 2. First average gain/loss (simple average)
-    let (sum_gain, sum_loss) = diffs[..period].iter().fold((0.0, 0.0), |(g, l), &d| {
-        if d > 0.0 { (g + d, l) } else { (g, l - d) }
-    });
+    let (sum_gain, sum_loss) =
+        diffs[..period].iter().fold(
+            (0.0, 0.0),
+            |(g, l), &d| {
+                if d > 0.0 {
+                    (g + d, l)
+                } else {
+                    (g, l - d)
+                }
+            },
+        );
 
     let mut avg_gain = sum_gain / period as f64;
     let mut avg_loss = sum_loss / period as f64;

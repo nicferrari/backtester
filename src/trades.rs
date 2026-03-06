@@ -2,9 +2,9 @@ use crate::broker::{Broker, Status};
 use crate::config::{get_config, Config};
 use crate::data::Data;
 use crate::metrics::Metrics;
+use crate::orders::Order::NULL;
 use crate::strategies::Strategy;
 use std::sync::Arc;
-use crate::orders::Order::NULL;
 
 ///Trade: a single trade with indices of moment of open, close and position (= index of trade within the Backtest list of trades)
 #[derive(Clone)]
@@ -39,7 +39,10 @@ pub fn trade_indices_from_broker(broker: &Broker) -> TradeList {
     };
 
     // keep only pairs where broker.side at open_index is not NULL
-    let pairs: Vec<(usize, usize)> = pairs .into_iter() .filter(|(open, _)| broker.side[*open] != NULL) .collect();
+    let pairs: Vec<(usize, usize)> = pairs
+        .into_iter()
+        .filter(|(open, _)| broker.side[*open] != NULL)
+        .collect();
 
     let indices = pairs
         .into_iter()
@@ -103,10 +106,10 @@ impl Trade {
         strategy.choices[self.open_index - 1].sign() as f64
             * (cfg
                 .execution_time
-                .to_quotes(strategy.data.clone(), self.close_index)
+                .to_quotes(&strategy.data, self.close_index)
                 / cfg
                     .execution_time
-                    .to_quotes(strategy.data.clone(), self.open_index)
+                    .to_quotes(&strategy.data, self.open_index)
                 / (1. + cfg.commission_rate)
                     .powi(2 * strategy.choices[self.open_index - 1].sign() as i32))
             .ln()
@@ -127,7 +130,9 @@ impl TradeList {
         let cfg = get_config();
         metrics.ticker = Some(strategy.data.ticker.to_string());
         metrics.strategy_name = Some(strategy.clone().name);
-        metrics.bmk_return = Some((strategy.data.close.last().unwrap()/strategy.data.open.first().unwrap()).ln()*100.);
+        metrics.bmk_return = Some(
+            (strategy.data.close.last().unwrap() / strategy.data.open.first().unwrap()).ln() * 100.,
+        );
         metrics.trades_nr = Some(self.indices.len());
         let max_pl = self
             .indices

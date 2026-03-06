@@ -5,7 +5,7 @@ range = "6mo"
 initial_capital = 10000
 commission = 0.001
 
-[backtests.strategy]
+[[backtests.strategy]]
 type = "Sma"
 period = 10
 
@@ -17,6 +17,15 @@ range = "6mo"
 initial_capital = 5000
 commission = 0.0005
 
-[backtests.strategy]
+[[backtests.strategy]]
 type = "Rsi"
 period = 14
+
+[[backtests.strategy]]
+type = "Sma"
+period = 15
+
+[[backtests.strategy]]
+type = "SmaCross"
+short_period = 15
+long_period = 25

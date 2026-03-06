@@ -19,7 +19,7 @@ pub enum Execution {
 }
 
 impl Execution {
-    pub fn to_quotes(&self, data: Arc<Data>, index: usize) -> f64 {
+    pub fn to_quotes(&self, data: &Arc<Data>, index: usize) -> f64 {
         match self {
             Execution::AtOpen(_) => data.open[index],
             Execution::AtClose(_) => data.close[index],
@@ -286,28 +286,28 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     let sizer = cfg.sizer;
     for i in 0..status.len() {
         availables[i..].fill(
-            positions[i] as f64 * cfg.execution_time.to_quotes(strategy.data.clone(), i)
+            positions[i] as f64 * cfg.execution_time.to_quotes(&strategy.data, i)
                 + accounts[i],
         );
         if status[i] == Status::Executed {
             fees[i] = (positions[i] as f64).abs()
-                * cfg.execution_time.to_quotes(strategy.data.clone(), i)
+                * cfg.execution_time.to_quotes(&strategy.data, i)
                 * cfg.commission_rate;
             positions[i..].fill(
                 //strategy.choices[i].sign() as f64
                 pending_order[i].sign() as f64
                     * sizer.position(
                         availables[i] - fees[i],
-                        cfg.execution_time.to_quotes(strategy.data.clone(), i),
+                        cfg.execution_time.to_quotes(&strategy.data, i),
                     ),
             );
             invested[i..]
-                .fill(positions[i] as f64 * cfg.execution_time.to_quotes(strategy.data.clone(), i));
+                .fill(positions[i] as f64 * cfg.execution_time.to_quotes(&strategy.data, i));
             fees[i] += invested[i].abs() * cfg.commission_rate;
             accounts[i..].fill(availables[i] - invested[i] - fees[i]);
             cash[i..].fill(availables[i] - invested[i].abs() - fees[i]);
         }
-        mtm[i] = positions[i] as f64 * cfg.execution_time.to_quotes(strategy.data.clone(), i)
+        mtm[i] = positions[i] as f64 * cfg.execution_time.to_quotes(&strategy.data, i)
             - invested[i]; //todo! mtm is now calculated on execution_time: do on close?
         networth[i] = positions[i] as f64 * strategy.data.close[i] + accounts[i];
     }
