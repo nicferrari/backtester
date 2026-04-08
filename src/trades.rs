@@ -139,13 +139,13 @@ impl TradeList {
             .iter()
             .map(|t| t.calc_pl(strategy.clone(), cfg.clone()))
             .reduce(f64::max)
-            .unwrap();
+            .unwrap_or(0.);
         let min_pl = self
             .indices
             .iter()
             .map(|t| t.calc_pl(strategy.clone(), cfg.clone()))
             .reduce(f64::min)
-            .unwrap();
+            .unwrap_or(0.);
         let win_rate = self
             .indices
             .iter()

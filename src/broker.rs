@@ -286,8 +286,7 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
     let sizer = cfg.sizer;
     for i in 0..status.len() {
         availables[i..].fill(
-            positions[i] as f64 * cfg.execution_time.to_quotes(&strategy.data, i)
-                + accounts[i],
+            positions[i] as f64 * cfg.execution_time.to_quotes(&strategy.data, i) + accounts[i],
         );
         if status[i] == Status::Executed {
             fees[i] = (positions[i] as f64).abs()
@@ -307,8 +306,8 @@ pub fn calculate(strategy: &Strategy, initial_account: f64) -> Broker {
             accounts[i..].fill(availables[i] - invested[i] - fees[i]);
             cash[i..].fill(availables[i] - invested[i].abs() - fees[i]);
         }
-        mtm[i] = positions[i] as f64 * cfg.execution_time.to_quotes(&strategy.data, i)
-            - invested[i]; //todo! mtm is now calculated on execution_time: do on close?
+        mtm[i] =
+            positions[i] as f64 * cfg.execution_time.to_quotes(&strategy.data, i) - invested[i]; //todo! mtm is now calculated on execution_time: do on close?
         networth[i] = positions[i] as f64 * strategy.data.close[i] + accounts[i];
     }
     Broker {

@@ -1,10 +1,10 @@
 use crate::backtester::Backtest;
+use crate::config::{get_config, update_config};
 use crate::data::Data;
 use crate::metrics::report_vertical;
-use crate::strategies::{buy_n_hold, rsi_strategy, sma_cross, sma_strategy};
+use crate::strategies::{rsi_strategy, sma_cross, sma_strategy};
 use serde::Deserialize;
 use std::fs;
-use crate::config::{get_config, update_config};
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -51,8 +51,8 @@ pub fn run(btrun: Config) -> Result<(), Box<dyn std::error::Error>> {
 
         let quotes = Data::new_from_yahoo(&bt.symbol, &bt.interval, &bt.range)?;
 
-        let cfg = get_config();
-        update_config(|cfg|{cfg.commission_rate = bt.commission});
+        let _cfg = get_config();
+        update_config(|cfg| cfg.commission_rate = bt.commission);
 
         for strategy in &bt.strategies {
             match strategy {

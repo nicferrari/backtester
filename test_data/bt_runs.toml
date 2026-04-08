@@ -19,7 +19,7 @@ commission = 0.0005
 
 [[backtests.strategy]]
 type = "Rsi"
-period = 14
+period = 15
 
 [[backtests.strategy]]
 type = "Sma"
