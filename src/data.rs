@@ -145,4 +145,15 @@ impl Data {
             volume,
         }))
     }
+    pub fn slice(&self, pos:usize, n:usize)-> Result<Arc<Self>, Box<dyn Error>>{
+        Ok(Arc::new(Data{
+            ticker:self.ticker.clone(),
+            datetime:self.datetime[pos..pos+n].to_vec(),
+            open:self.open[pos..pos+n].to_vec(),
+            high:self.high[pos..pos+n].to_vec(),
+            low:self.low[pos..pos+n].to_vec(),
+            close:self.close[pos..pos+n].to_vec(),
+            volume:self.volume[pos..pos+n].to_vec(),
+        }))
+    }
 }

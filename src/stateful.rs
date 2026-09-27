@@ -1,14 +1,17 @@
-use crate::datas::Data;
+use std::sync::Arc;
+use plotters::prelude::LogScalable;
+use crate::data::Data;
 use crate::orders::Order;
 
-pub fn sma(data: Data, period: usize) ->Option<f64>{
+pub fn sma(data: Arc<Data>, period: usize) ->Option<f64>{
     if data.close.len()<period{return None}
     let window = &data.close[data.close.len() - period..];
     Some(window.iter().sum::<f64>() / period as f64)
 }
 
-pub fn sma_cross(data: Data, period_short:usize, period_long:usize)->Order{
-    if sma(data.clone(), period_short)>=sma(data, period_long){Order::BUY}
+pub fn sma_cross(data: Arc<Data>, period_short:usize, period_long:usize)->Order{
+    if (sma(data.clone(),period_short).unwrap_or(-1f64)==-1.) | (sma(data.clone(),period_long).unwrap_or(-1f64)==-1.){Order::NULL}
+    else if sma(data.clone(), period_short)>=sma(data.clone(), period_long) {Order::BUY}
     else {Order::SHORTSELL}
 }
 
@@ -31,7 +34,7 @@ pub enum SlippageMode{
     NEXTCLOSE(u32),
 }
 
-pub fn broker(data: Data, order: Order, state: State, slippage_mode: SlippageMode)->f64{
+pub fn broker(data: Arc<Data>, order: Order, state: State, slippage_mode: SlippageMode)->f64{
     if state.order_status==OrderStatus::OPEN && SlippageMode::NEXTCLOSE(state.delay)==slippage_mode{
         match order {
             Order::BUY=>{state.account/data.open.last().unwrap()},
