@@ -8,10 +8,10 @@ pub mod errors;
 pub mod metrics;
 pub mod orders;
 pub mod risk_manager;
+pub mod stateful;
 pub mod strategies;
 pub mod ta;
 pub mod trades;
 pub mod utilities;
-pub mod stateful;
 
 pub use errors::Result;
