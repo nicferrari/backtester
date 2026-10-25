@@ -59,19 +59,31 @@ pub fn sma_cross(data: Arc<Data>, period_short: usize, period_long: usize) -> Si
     }
 }
 
-pub fn broker(data: Arc<Data>, mut state: State, slippage_mode: SlippageMode) -> f64 {
+pub fn broker(data: Arc<Data>, state: &mut State, slippage_mode: SlippageMode) {
     if state.order.order_status == OrderStatus::OPEN
         && SlippageMode::NEXTCLOSE(state.delay) == slippage_mode
     {
         match state.order.order_type {
             OrderType::BUY => {
+                state.account +=state.position*data.open.last().unwrap();
+                state.position = state.account / data.open.last().unwrap();
+                state.account -=state.position * data.open.last().unwrap();
                 state.order.order_status = OrderStatus::EXECUTED;
-                state.account / data.open.last().unwrap()
             }
-            OrderType::SELL => 0.,
-            OrderType::NONE => 0.,
+            OrderType::SELL => {
+                state.account +=state.position*data.open.last().unwrap();
+                state.position = -state.account / data.open.last().unwrap();
+                state.account -=state.position * data.open.last().unwrap();
+                state.order.order_status = OrderStatus::EXECUTED;
+            },
+            OrderType::NONE => {
+                state.account +=state.position*data.open.last().unwrap();
+                state.position = 0.;
+                state.order.order_status = OrderStatus::EXECUTED;
+            },
         }
+        //println!("\n Order {:?} {:?} {:?}", state.order.order_type,state.order.order_status,data.open.last().unwrap());
     } else {
-        state.position
+        state.delay+=1;
     }
 }
