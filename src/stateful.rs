@@ -1,6 +1,7 @@
 use crate::data::Data;
 //use crate::orders::Order;
 use std::sync::Arc;
+use crate::stateful::ConditionalOrderStatus::OPEN;
 //use crate::stateful::OrderStatus::EXECUTED;
 
 pub struct State {
@@ -8,6 +9,8 @@ pub struct State {
     pub position: f64,
     pub order: Order,
     pub delay: u32,
+    pub conditional: Conditional,
+    pub cooldown:u32,
 }
 
 #[derive(PartialEq, Debug)]
@@ -41,6 +44,24 @@ pub enum Signal {
     FLAT,
 }
 
+#[derive(Debug)]
+pub enum ConditionalOrderStatus{
+    OPEN,
+    TRIGGERED,
+}
+#[derive(Debug)]
+pub enum ConditionalType{
+    STOPLOSS,
+    TAKEPROFIT,
+    NONE,
+}
+
+pub struct Conditional{
+    pub cond_type:ConditionalType,
+    pub level:f64,
+    pub status: ConditionalOrderStatus,
+}
+
 pub fn sma(data: Arc<Data>, period: usize) -> Option<f64> {
     if period == 0 || data.close.len() < period {
         return None;
@@ -59,7 +80,7 @@ pub fn sma_cross(data: Arc<Data>, period_short: usize, period_long: usize) -> Si
     }
 }
 
-pub fn broker(data: Arc<Data>, state: &mut State, slippage_mode: SlippageMode) {
+pub fn broker(data: Arc<Data>, state: &mut State, slippage_mode: SlippageMode, sl:f64) {
     if state.order.order_status == OrderStatus::OPEN
         && SlippageMode::NEXTCLOSE(state.delay) == slippage_mode
     {
@@ -69,12 +90,16 @@ pub fn broker(data: Arc<Data>, state: &mut State, slippage_mode: SlippageMode) {
                 state.position = state.account / data.open.last().unwrap();
                 state.account -=state.position * data.open.last().unwrap();
                 state.order.order_status = OrderStatus::EXECUTED;
+                state.conditional.status=OPEN;
+                state.conditional.level=(1.-sl)*data.open.last().unwrap();
             }
             OrderType::SELL => {
                 state.account +=state.position*data.open.last().unwrap();
                 state.position = -state.account / data.open.last().unwrap();
                 state.account -=state.position * data.open.last().unwrap();
                 state.order.order_status = OrderStatus::EXECUTED;
+                state.conditional.status=OPEN;
+                state.conditional.level=(1.+sl)*data.open.last().unwrap();
             },
             OrderType::NONE => {
                 state.account +=state.position*data.open.last().unwrap();
@@ -85,5 +110,6 @@ pub fn broker(data: Arc<Data>, state: &mut State, slippage_mode: SlippageMode) {
         //println!("\n Order {:?} {:?} {:?}", state.order.order_type,state.order.order_status,data.open.last().unwrap());
     } else {
         state.delay+=1;
+        if state.cooldown>0{state.cooldown-=1};
     }
 }
