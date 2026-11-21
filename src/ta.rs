@@ -73,3 +73,31 @@ pub fn rsi(quotes: &Data, period: usize) -> Vec<f64> {
 
     out
 }
+
+///calculate ATR (Wilder, TA-Lib seed), f64::NAN during warm-up
+#[cfg(feature = "fin-primitives")]
+pub fn atr(quotes: &Data, period: usize) -> Vec<f64> {
+    use fin_primitives::signals::batch_f64::{atr, AtrSeed};
+    atr(
+        &quotes.high,
+        &quotes.low,
+        &quotes.close,
+        period,
+        AtrSeed::TaLib,
+    )
+}
+///calculate MACD (line, signal, histogram), f64::NAN during warm-up
+#[cfg(feature = "fin-primitives")]
+pub fn macd(
+    quotes: &Data,
+    fast: usize,
+    slow: usize,
+    signal: usize,
+) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
+    fin_primitives::signals::batch_f64::macd(&quotes.close, fast, slow, signal)
+}
+///calculate Bollinger Bands (lower, mid, upper), f64::NAN during warm-up
+#[cfg(feature = "fin-primitives")]
+pub fn bbands(quotes: &Data, period: usize, k: f64) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
+    fin_primitives::signals::batch_f64::bbands(&quotes.close, period, k, 0)
+}

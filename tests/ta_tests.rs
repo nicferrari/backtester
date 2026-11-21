@@ -19,3 +19,23 @@ fn ta_tests() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(sma_bt.strategy.choices[9], BUY);
     Ok(())
 }
+
+#[cfg(feature = "fin-primitives")]
+#[test]
+fn atr_wilder_tests() -> Result<(), Box<dyn std::error::Error>> {
+    let q = load_data()?;
+    let atr = rs_backtester::ta::atr(&q, 14);
+    let tr = |i: usize| {
+        (q.high[i] - q.low[i])
+            .max((q.high[i] - q.close[i - 1]).abs())
+            .max((q.low[i] - q.close[i - 1]).abs())
+    };
+    let seed: f64 = (1..=14).map(tr).sum::<f64>() / 14.;
+    assert!(atr[13].is_nan());
+    assert!((atr[14] - seed).abs() < 1e-9);
+    assert!((atr[15] - (seed * 13. + tr(15)) / 14.).abs() < 1e-9);
+    let (line, signal, hist) = rs_backtester::ta::macd(&q, 12, 26, 9);
+    assert!(line[24].is_nan() && !line[25].is_nan() && !signal[33].is_nan());
+    assert!((hist[40] - (line[40] - signal[40])).abs() < 1e-9);
+    Ok(())
+}
